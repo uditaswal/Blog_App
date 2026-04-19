@@ -1,0 +1,90 @@
+<!-- views/partials/nav.ejs -->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-light shadow sticky-top">
+    <div class="container">
+
+        <!-- Brand -->
+        <a class="navbar-brand fw-bold text-white fs-4" href="/">
+            InkFlow
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+
+            <!-- Left -->
+            <ul class="navbar-nav me-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link text-white active px-3" href="/">
+                        Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white px-3" href="/add-blog">
+                        Write Post
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white px-3" href="/blogs">
+                        Explore
+                    </a>
+                </li>
+
+            </ul>
+
+            <!-- Search -->
+            <form class="d-flex me-3 my-2 my-lg-0">
+                <input class="form-control bg-dark text-white border-light" type="search" placeholder="Search blogs">
+            </form>
+
+            <!-- Right -->
+            <ul class="navbar-nav">
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+
+                        Udit
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+
+                        <li>
+                            <a class="dropdown-item text-white" href="/signin">
+                                Sign In
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item text-white" href="/signup">
+                                Sign Up
+                            </a>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item text-danger" href="/logout">
+                                Logout
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </li>
+
+            </ul>
+
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,110 @@
+<!-- views/home.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partials/head.ejs') %>
+        <title>InkFlow Blog</title>
+</head>
+
+<body class="bg-dark text-light d-flex flex-column min-vh-100 flex-grow-1">
+
+    <%- include('./partials/nav.ejs') %>
+
+        <!-- Hero -->
+        <section class="container py-5">
+            <div class="row align-items-center g-5">
+
+                <div class="col-lg-6">
+                    <span class="badge bg-primary px-3 py-2 mb-3">Modern Blogging Platform</span>
+
+                    <h1 class="display-4 fw-bold mb-3">
+                        Share Your Ideas With The World
+                    </h1>
+
+                    <p class="lead text-secondary mb-4">
+                        Write stories, publish blogs, explore insights,
+                        and build your personal brand with a clean modern platform.
+                    </p>
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="/signup" class="btn btn-primary btn-lg px-4">
+                            Start Writing
+                        </a>
+
+                        <a href="/signin" class="btn btn-outline-light btn-lg px-4">
+                            Login
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card bg-black border-secondary text-white shadow-lg rounded-4">
+                        <div class="card-body p-4">
+
+                            <h4 class="text-info mb-4">Why Bloggers Love It</h4>
+
+                            <p>✍️ Rich writing experience</p>
+                            <p>📚 Publish unlimited posts</p>
+                            <p>🌍 Reach readers globally</p>
+                            <p>💬 Comments & engagement</p>
+                            <p>📱 Mobile responsive UI</p>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Latest Posts -->
+        <section class="container pb-5">
+            <h2 class="mb-4">Trending Posts</h2>
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+                    <div class="card text-white bg-black border-secondary h-100">
+                        <div class="card-body">
+                            <h5>How to Stay Consistent</h5>
+                            <p class="text-secondary">
+                                Learn habits that help creators stay consistent online.
+                            </p>
+                            <a href="#" class="text-info text-decoration-none">Read More →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class=" card bg-black border-secondary h-100">
+                        <div class="card-body">
+                            <h5 class="text-white">Node.js for Beginners</h5>
+                            <p class="text-secondary">
+                                Build your first backend project step by step.
+                            </p>
+                            <a href="#" class="text-info text-decoration-none">Read More →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card bg-black border-secondary h-100">
+                        <div class="card-body">
+                            <h5 class="text-white">Future of AI Writing</h5>
+                            <p class="text-secondary">
+                                How AI tools are changing blogging forever.
+                            </p>
+                            <a href="#" class="text-info text-decoration-none">Read More →</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <%- include('./partials/footer.ejs') %>
+
+            <%- include('./partials/scripts.ejs') %>
+
+</body>
+
+</html>

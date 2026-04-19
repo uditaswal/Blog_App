@@ -1,0 +1,71 @@
+<!-- views/signup.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partials/head.ejs') %>
+        <title>Join InkFlow</title>
+</head>
+
+<body class="bg-dark text-light min-vh-100 flex-grow-1">
+
+    <%- include('./partials/nav.ejs') %>
+
+        <section class="container py-5">
+            <div class="row justify-content-center">
+
+                <div class="col-md-6 col-lg-5">
+                    <div class="card bg-black border-secondary shadow rounded-4">
+
+                        <div class="card-body p-4">
+
+                            <h2 class="text-center text-info mb-2">Create Account</h2>
+                            <p class="text-center text-secondary mb-4">
+                                Join thousands of writers today.
+                            </p>
+
+                            <form action="/signup" method="POST">
+
+                                <div class="mb-3">
+                                    <label class="form-label">Name</label>
+                                    <input type="text" name="name"
+                                        class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email"
+                                        class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" name="password"
+                                        class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+
+                                <button class="btn btn-primary w-100">
+                                    Sign Up
+                                </button>
+
+                            </form>
+
+                            <p class="text-center mt-3 text-secondary">
+                                Already have an account?
+                                <a href="/signin" class="text-info text-decoration-none">Sign In</a>
+                            </p>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <%- include('./partials/footer.ejs') %>
+
+            <%- include('./partials/scripts.ejs') %>
+
+</body>
+
+</html>

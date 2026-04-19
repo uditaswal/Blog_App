@@ -1,0 +1,65 @@
+<!-- views/signin.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partials/head.ejs') %>
+        <title>Login</title>
+</head>
+
+<body class="bg-dark text-light d-flex flex-column min-vh-100">
+
+    <%- include('./partials/nav.ejs') %>
+
+        <section class="container py-5 flex-grow-1 d-flex align-items-center">
+            <div class="row justify-content-center">
+
+                <div class="col-md-6 col-lg-5">
+                    <div class="card bg-black border-secondary shadow rounded-4">
+
+                        <div class="card-body p-4">
+
+                            <h2 class="text-center text-info mb-2">Welcome Back</h2>
+                            <p class="text-center text-secondary mb-4">
+                                Continue your writing journey.
+                            </p>
+
+                            <form action="/signin" method="POST">
+
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email"
+                                        class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" name="password"
+                                        class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+
+                                <button class="btn btn-primary w-100">
+                                    Sign In
+                                </button>
+
+                            </form>
+
+                            <p class="text-center mt-3 text-secondary">
+                                New here?
+                                <a href="/signup" class="text-info text-decoration-none">Create Account</a>
+                            </p>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <%- include('./partials/footer.ejs') %>
+
+            <%- include('./partials/scripts.ejs') %>
+
+</body>
+
+</html>
