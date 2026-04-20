@@ -1,13 +1,22 @@
 import path from 'path'
+import { fileURLToPath } from 'url'
 import express, { urlencoded } from 'express'
 import { router } from './routes/app.routes.js';
 import { logger } from './utils/logger.utils.js';
 
 //middleware
 export const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: "false" }))
+app.use(express.urlencoded({ extended: "false" }));
+app.use(express.static(path.join(__dirname, "public")));
+
+app.use((req, res, next) => {
+    res.locals.user = req.user || null;
+    next();
+});
 
 app.use((req, res, next) => {
     const start = Date.now();
@@ -27,7 +36,7 @@ app.use((req, res, next) => {
 
 // ejs
 app.set('view engine', 'ejs')
-app.set('views', path.resolve("./views"))
+app.set('views', path.join(__dirname, "views"))
 
 
 // routes:
