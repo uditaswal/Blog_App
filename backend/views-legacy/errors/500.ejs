@@ -1,0 +1,47 @@
+<!-- views/errors/500.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head.ejs') %>
+    <title>500 - Server Error</title>
+</head>
+
+<body class="bg-dark text-light d-flex flex-column min-vh-100">
+
+    <%- include('../partials/nav.ejs') %>
+
+    <section class="container flex-grow-1 d-flex align-items-center justify-content-center py-5">
+        <div class="text-center">
+
+            <span class="badge hero-badge px-3 py-2 mb-3">
+                🚨 Error 500
+            </span>
+
+            <h1 class="display-1 fw-bold text-warning">500</h1>
+
+            <h2 class="fw-bold mb-3">Internal Server Error</h2>
+
+            <p class="lead text-secondary mb-4">
+                Something went wrong on our side. Please try again later.
+            </p>
+
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="/" class="btn btn-primary px-4">
+                    Back Home
+                </a>
+
+                <a href="/contact" class="btn btn-outline-light px-4">
+                    Contact Support
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <%- include('../partials/footer.ejs') %>
+    <%- include('../partials/scripts.ejs') %>
+
+</body>
+
+</html>

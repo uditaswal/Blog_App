@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
+import { logger } from '../utils/logger.utils.js';
+
 
 const userSchema = new Schema({
     fullName: {
@@ -27,14 +29,23 @@ const userSchema = new Schema({
 })
 
 
-userSchema.pre('save', async function (next) {
-    const user = this;
-    if (!user.isModified('password')) return next();
+userSchema.pre('save', async function () {
+    try {
+        const SALT_ROUNDS = 10;
 
-    this.password = await bcrypt.hash(password, 10);
-    // for reading password during login
-    // const match = await bcrypt.compare(password, user.password);
-    next();
+        if (!this.isModified('password')) return;
+
+        this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
+
+        logger.info({
+            message: "User password hashed before save",
+            userId: this._id,
+            email: this.email
+        });
+
+    } catch (error) {
+        logger.error({ error: error });
+    }
 
 })
 

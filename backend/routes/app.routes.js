@@ -1,10 +1,10 @@
-import { Router } from 'express'
-import User from '../models/user.models.js';
+import { Router } from 'express';
+import { signup } from '../controllers/auth.controller.js'
 export const router = Router();
 
 router.get('/', (req, res) => {
     // res.status(200).json({ msg: "Hello from Server" })
-    res.render('home')
+    res.render('home');
 
 });
 
@@ -15,12 +15,12 @@ router.get('/signin', (req, res) => {
 });
 
 router.get('/signup', (req, res) => {
-    return res.render('signup')
+    res.render("signup", {
+        error: null,
+        fullName: "",
+        email: ""
+    });
 });
 
-router.post('/signup', async (req, res) => {
-    const { fullName, email, password } = req.body;
-    await User.create({ fullName, email, password });
-    return res.redirect("/")
-});
+router.post('/signup', signup);
 

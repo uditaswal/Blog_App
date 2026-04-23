@@ -21,14 +21,25 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     const start = Date.now();
 
-    logger.info(`REQ ${req.method} ${req.url} BODY=${JSON.stringify(req.body)}`);
+    // logger.info(`REQ ${req.method} ${req.url} BODY=${JSON.stringify(req.body)}`);
+    logger.info({
+        message: "REQUEST",
+        url: req.url,
+        method: req.method,
+        body: JSON.stringify(req.body),
+    });
 
     res.on("finish", () => {
         const ms = Date.now() - start;
 
-        logger.info(
-            `RES ${req.method} ${req.url} STATUS=${res.statusCode} TIME=${ms}ms`
-        );
+        logger.info({
+            message: "RESPONSE",
+            url: req.url,
+            method: req.method,
+            statusCode: res.statusCode,
+            responseMessage: res.json,
+            ExecutionTime: `${ms}ms`
+        });
     });
 
     next();
@@ -44,4 +55,19 @@ app.use('/', router);
 
 app.get('/test', (req, res) => {
     res.status(200).json({ msg: "OK" })
+});
+
+
+app.use((req, res) => {
+
+    res.status(404).render("errors/404", {
+        title: "Not Found"
+    });
+});
+
+app.use((err, req, res) => {
+    logger.error({ "error": err })
+    res.status(500).render("errors/500", {
+        title: "Server Error"
+    });
 });
