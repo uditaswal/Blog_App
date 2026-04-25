@@ -5,6 +5,10 @@ node_modules/
 logs/
 *.logs
 
+tree.md
+task.md
 
 # Added by ggshield
 .cache_ggshield
+
+

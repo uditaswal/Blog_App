@@ -1,11 +1,12 @@
-import { Router } from 'express'
-import User from '../models/user.models.js';
+import { Router } from 'express';
+import { signup, signin } from '../controllers/auth.controller.js'
+import { protect } from "../middleware/auth.middleware.js"
+import { getProfile } from "../controllers/user.controller.js"
+
 export const userRouter = Router();
 
-router.get('/', (req, res) => {
-    res.status(200).json({ msg: "Hello from Server" })
-});
+userRouter.post('/signin', signin);
 
-router.post('/signup',);
+userRouter.post('/signup', signup);
 
-router.post('/signin',)
+userRouter.get("/profile", protect, getProfile);

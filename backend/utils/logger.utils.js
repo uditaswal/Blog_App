@@ -4,6 +4,31 @@ import { isProd } from '../config/env.js'
 import path from 'path';
 import { fileURLToPath } from "url";
 
+function normalizeErrors(obj) {
+    if (obj instanceof Error) {
+        return {
+            name: obj.name,
+            message: obj.message,
+            stack: isProd ? undefined : obj.stack
+        };
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(normalizeErrors);
+    }
+
+    if (obj && typeof obj === "object") {
+        const out = {};
+
+        for (const key of Object.keys(obj)) {
+            out[key] = normalizeErrors(obj[key]);
+        }
+
+        return out;
+    }
+    return obj;
+
+}
+
 function getCaller() {
     const old = Error.prepareStackTrace;
 
@@ -74,7 +99,7 @@ const sanitizePayload = (payload) => {
 
     if (sanitizedPayload.password) sanitizedPayload.password = "[Redacted]";
     if (sanitizedPayload.token) sanitizedPayload.token = "[Redacted]";
-    if (sanitizedPayload.email) sanitizedPayload.email = maskEmail(sanitizedPayload.email);
+    // if (sanitizedPayload.email) sanitizedPayload.email = maskEmail(sanitizedPayload.email);
 
     return sanitizedPayload;
 };
@@ -151,22 +176,23 @@ const baseLogger = winston.createLogger({
 
 export const logger = {
     info(message) {
-        const payload = typeof message === "object" && message !== null
-            ? { ...message, ...getCaller() }   // spread object fields to top level
-            : { message, ...getCaller() };      // keep string as message field
+        const payload =
+            typeof message === "object" && message !== null
+                ? { ...normalizeErrors(message), ...getCaller() } // spread object fields to top level
+                : { message, ...getCaller() }; // keep string as message field
         baseLogger.info(payload);
-    },
 
+    },
     error(message) {
         const payload = typeof message === "object" && message !== null
-            ? { ...message, ...getCaller() }
+            ? { ...normalizeErrors(message), ...getCaller() }
             : { message, ...getCaller() };
         baseLogger.error(payload);
     },
 
     warn(message) {
         const payload = typeof message === "object" && message !== null
-            ? { ...message, ...getCaller() }
+            ? { ...normalizeErrors(message), ...getCaller() }
             : { message, ...getCaller() };
         baseLogger.warn(payload);
     }

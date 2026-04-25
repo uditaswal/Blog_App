@@ -2,7 +2,11 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import express, { urlencoded } from 'express'
 import { router } from './routes/app.routes.js';
+import { userRouter } from './routes/user.routes.js';
 import { logger } from './utils/logger.utils.js';
+import cookieParse from "cookie-parser";
+import { frontEndOrigin } from "./config/env.js"
+import cors from "cors";
 
 //middleware
 export const app = express();
@@ -52,6 +56,7 @@ app.set('views', path.join(__dirname, "views-legacy"))
 
 // routes:
 app.use('/', router);
+app.use('/user', userRouter);
 
 app.get('/test', (req, res) => {
     res.status(200).json({ msg: "OK" })
@@ -59,15 +64,28 @@ app.get('/test', (req, res) => {
 
 
 app.use((req, res) => {
-
-    res.status(404).render("errors/404", {
-        title: "Not Found"
-    });
+    logger.error({ error: "HTTP 404! Page Not Found" })
+    res.status(404).json({
+        success: false,
+        message: "Page Not Found"
+    })
 });
 
 app.use((err, req, res) => {
     logger.error({ "error": err })
-    res.status(500).render("errors/500", {
-        title: "Server Error"
-    });
+    res.status(500).json({
+        success: false,
+        message: "Internal Server Error"
+    })
 });
+
+
+// handling cookies
+
+app.use(cookieParse());
+app.use(express.json());
+
+app.use(cors({
+    origin: frontEndOrigin,
+    credentials: true
+}))
