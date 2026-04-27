@@ -1,27 +1,43 @@
 import User from "../models/user.models.js";
 import { logger } from "../utils/logger.utils.js";
-import { JWT_SECRET, isProd } from "../config/env.js"
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { isValidEmail, isValidPassword } from "../utils/validation.utils.js";
-
+import { loginTokenGeneration } from '../utils/auth.utils.js'
+import { defaultImgPath } from '../config/env.js'
+import path from "path";
 export async function signup(req, res) {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, username, password } = req.body;
 
     try {
         logger.info({
             "Message": "Sign up request received.",
             "fullName": fullName,
             "email": email,
+            "username": username,
+            "file_path": req.file?.path || defaultImgPath,
         });
 
         // isValidation
-        if (!fullName || !email || !password) {
+        if (!fullName || !email || !password || !username) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required"
             });
         }
+
+        const normalizedUsername = username.trim().toLowerCase();
+        const normalizedEmail = email.trim().toLowerCase();
+        const filePath = req.file?.path || defaultImgPath;
+        const currentDirectory = process.cwd();
+        const profileImageURL = req.file?.path ? path.relative(filePath, currentDirectory) : defaultImgPath
+
+        logger.info({
+            "Message": "Normalized Values.",
+            "fullName": fullName,
+            "email": normalizedEmail,
+            "username": normalizedUsername,
+            "profileImageURL": profileImageURL,
+        });
 
         const passwordCheck = isValidPassword(password);
         if (!passwordCheck.isValid) {
@@ -31,7 +47,7 @@ export async function signup(req, res) {
             });
         }
 
-        const emailCheck = isValidEmail(email);;
+        const emailCheck = isValidEmail(normalizedEmail);;
         if (!emailCheck.isValid) {
             return res.status(400).json({
                 success: false,
@@ -39,22 +55,62 @@ export async function signup(req, res) {
             })
         }
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            logger.info({ "message": `${email} already exist in DB` })
+        if (normalizedUsername.length >= 20 || normalizedUsername.length <= 6) {
+            logger.error({
+                error: "username should be either more than 6 digit and less than 20 digit long",
+                "fullName": fullName,
+                "email": normalizedEmail,
+                "username": normalizedUsername,
+                "username_length": normalizedUsername.length
+            })
+
             return res.status(400).json({
                 success: false,
-                message: "Email already registered. Please sign in."
-            });
+                message: "username should be either more than 6 digit and less than 20 digit long"
+            })
+
+        }
+
+        const existingUser = await User.findOne({
+            $or: [
+                { email: normalizedEmail },
+                { username: normalizedUsername }
+            ]
+        });
+
+        logger.info({ message: "existingUser", existingUser: existingUser, })
+
+        if (existingUser) {
+            if (existingUser.email === normalizedEmail) {
+                logger.error({ "error": `${email} already exist in DB` })
+                return res.status(400).json({
+                    success: false,
+                    message: "Email already registered. Please sign in."
+                });
+
+            } else if (existingUser.username === normalizedUsername) {
+                logger.error({ "error": `${username} already exist in DB` })
+                return res.status(400).json({
+                    success: false,
+                    message: "Username already taken."
+                });
+            }
         }
 
         // create user:
-        const user = await User.create({ fullName, email, password });
+        const user = await User.create({
+            fullName,
+            email: normalizedEmail,
+            username: normalizedUsername,
+            password,
+            profileImageURL
+        });
         logger.info({
             message: "User Created in DB",
             userId: user._id,
-            fullName,
-            email,
+            fullName: fullName,
+            email: normalizedEmail,
+            username: normalizedUsername
         });
 
         return res.status(201).json({
@@ -65,6 +121,7 @@ export async function signup(req, res) {
                     "id": user._id,
                     "fullName": user.fullName,
                     "email": user.email,
+                    "username": user.username
                 }
             }
         });
@@ -73,8 +130,9 @@ export async function signup(req, res) {
         logger.error({
             Message: "Error while creating DB User",
             error: err,
-            fullName,
-            email
+            fullName: fullName,
+            email: email,
+            username: username
         });
         return res.status(500).json({
             success: false,
@@ -84,34 +142,36 @@ export async function signup(req, res) {
 };
 
 export async function signin(req, res) {
-
     try {
-        const { email, password } = req.body;
-        logger.info({
-            message: "Signin Request Received",
-            email: email
-        });
 
-        if (!email || !password) {
+        const { loginId, password } = req.body
 
+        if (!loginId || !password) {
             logger.error({
                 error: "Mandatory field missing for signin",
-                email: email || null
+                loginId: loginId || null
             });
 
             return res.status(400).json({
                 success: false,
                 message: "Mandatory field missing for signin"
             });
-
         }
+
+        const normalizedLoginId = loginId.trim().toLowerCase();
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedLoginId);
+
+        logger.info({
+            message: "Signin Request Received",
+            loginId: normalizedLoginId
+        });
 
         const passwordCheck = isValidPassword(password);
 
         if (!passwordCheck.isValid) {
             logger.error({
                 error: "Password should contain - one lowercase,one uppercase,one number,one special character,minimum 8 chars",
-                email: email || null
+                loginId: normalizedLoginId
             });
 
             return res.status(400).json({
@@ -120,25 +180,29 @@ export async function signin(req, res) {
             })
         }
 
-        const emailCheck = isValidEmail(email);
+        if (isEmail) {
+            const emailCheck = isValidEmail(loginId);
 
-        if (!emailCheck.isValid) {
-            logger.error({
-                error: "Invalid Email Address",
-                email: email || null
-            });
+            if (!emailCheck.isValid) {
+                logger.error({
+                    error: "Invalid Email Address",
+                    loginId: loginId
+                });
 
-            return res.status(400).json({
-                success: false,
-                message: "Invalid Email Address"
-            })
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid Email Address"
+                })
+            }
+
         }
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne(
+            isEmail ? { email: normalizedLoginId } : { username: normalizedLoginId });
         if (!user) {
             logger.error({
                 error: "Sign in failed - User does not exist",
-                email: email
+                loginId: normalizedLoginId
             })
 
             return res.status(400).json({
@@ -147,13 +211,12 @@ export async function signin(req, res) {
             });
         }
 
-
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
             logger.error({
                 error: "Sign in failed - Incorrect Password",
-                email: email
+                loginId: normalizedLoginId
             })
 
             return res.status(400).json({
@@ -161,10 +224,7 @@ export async function signin(req, res) {
                 message: "Sign in failed - Incorrect Password",
             });
         }
-
         return loginTokenGeneration(req, res, user);
-
-
     } catch (err) {
         logger.error({
             message: "Error in Signin function",
@@ -181,46 +241,35 @@ export async function signin(req, res) {
 
 }
 
-export function loginTokenGeneration(req, res, user) {
-
-    const token = jwt.sign(
-        { userId: user._id }, process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-
-    )
-
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: isProd ? true : false,
-        sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7  days
-    })
-
-    logger.info(
-        {
-            message: "Login token generated successfully",
-            email: user.email
-        })
 
 
-    return res.status(200).json({
-        success: true,
-        message: "Sign successful",
-        data: {
-            fullName: user.fullName,
-            email: user.email,
-            id: user._id
-        }
-    })
+export function signout(req, res, user) {
+    try {
 
-};
+        res.clearCookie("token");
+
+        logger.info(
+            {
+                message: "Signout Successful",
+                loginId: user.loginId
+            })
 
 
-export function signout(req, res) {
-    res.clearCookie("token");
+        res.status(200).json({
+            success: true,
+            message: "Logged out"
+        });
+    } catch (error) {
+        logger.info(
+            {
+                message: "Error occurred while logging out",
+                error: error
+            })
+    }
 
-    res.json({
-        success: true,
-        message: "Logged out"
+    res.status(500).json({
+        success: false,
+        message: "Error occurred while logging out"
     });
 }
+

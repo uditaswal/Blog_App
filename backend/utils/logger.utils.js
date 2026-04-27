@@ -1,5 +1,5 @@
 import winston from 'winston';
-import DailyRotateFile from 'winston-daily-rotate-file';
+import DailyRotateFile from "winston-daily-rotate-file";
 import { isProd } from '../config/env.js'
 import path from 'path';
 import { fileURLToPath } from "url";
@@ -88,6 +88,7 @@ export const sanitize = (info) => {
 };
 
 const maskEmail = (email) => {
+
     if (!email) return email;
     const [name, domain] = email.split("@");
     return name.slice(0, 2) + "***@" + domain;
@@ -99,7 +100,7 @@ const sanitizePayload = (payload) => {
 
     if (sanitizedPayload.password) sanitizedPayload.password = "[Redacted]";
     if (sanitizedPayload.token) sanitizedPayload.token = "[Redacted]";
-    // if (sanitizedPayload.email) sanitizedPayload.email = maskEmail(sanitizedPayload.email);
+    if (sanitizedPayload.email) sanitizedPayload.email = isProd ? maskEmail(sanitizedPayload.email) : sanitizedPayload.email;
 
     return sanitizedPayload;
 };

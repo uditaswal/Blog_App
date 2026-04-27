@@ -9,7 +9,7 @@ async function startServer() {
     try {
         await connectMongoDB(dbURL, mongoDBServerSelectionTimeoutMS, mongoDBConnectTimeoutMS);
         app.listen(PORT, () => {
-            logger.info(`Server running on port ${PORT} on ${process.env.NODE_ENV} env at ${ENDPOINT}${PORT}`);
+            logger.info(`Server running on port ${PORT} on ${ENVIRONMENT} env at ${ENDPOINT}${PORT}`);
         });
 
     } catch (error) {

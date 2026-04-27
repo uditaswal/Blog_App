@@ -13,3 +13,4 @@ export const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-
 export const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
 export const frontEndOrigin = isProd ? process.env.prod_frontEndOrigin : process.env.test_frontEndOrigin;
 export const JWT_SECRET = process.env.JWT_SECRET;
+export const defaultImgPath = "public/image/defaultImage.png";
