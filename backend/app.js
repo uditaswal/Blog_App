@@ -2,8 +2,9 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import express from 'express'
 import { router } from './routes/app.routes.js';
-import { userRouter } from './routes/user.routes.js';
+import { authRouter } from './routes/auth.routes.js';
 import { blogRouter } from './routes/blogs.routes.js';
+import { userRouter } from './routes/user.routes.js';
 import { logger } from './utils/logger.utils.js';
 import cookieParser from "cookie-parser";
 import { frontEndOrigin } from "./config/env.js"
@@ -16,8 +17,8 @@ const __dirname = path.dirname(__filename);
 
 
 app.use(cors({
-    origin: frontEndOrigin,
-    credentials: true
+  origin: frontEndOrigin,
+  credentials: true
 }));
 
 app.use(cookieParser());
@@ -25,64 +26,68 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// for legacy ejs flow
 app.use((req, res, next) => {
-    res.locals.user = req.user || null;
-    next();
-});
+  const start = Date.now();
 
-app.use((req, res, next) => {
-    const start = Date.now();
-    // logger.info(`REQ ${req.method} ${req.url} BODY=${JSON.stringify(req.body)}`);
+  const originalJson = res.json;
+
+  res.json = function (body) {
+    res.locals.responseBody = body;
+    return originalJson.call(this, body);
+  };
+  // logger.info(`REQ ${req.method} ${req.url} BODY=${JSON.stringify(req.body)}`);
+  logger.info({
+    message: "REQUEST",
+    url: req.url,
+    method: req.method,
+    body: JSON.stringify(req.body),
+  });
+
+  res.on("finish", () => {
+    const ms = Date.now() - start;
+
     logger.info({
-        message: "REQUEST",
-        url: req.url,
-        method: req.method,
-        body: JSON.stringify(req.body),
+      message: "RESPONSE",
+      url: req.url,
+      method: req.method,
+      statusCode: res.statusCode,
+      ExecutionTime: `${ms}ms`,
+      success: res.locals.responseBody?.success,
+      responseMessage: res.locals.responseBody?.message
     });
-
-    res.on("finish", () => {
-        const ms = Date.now() - start;
-
-        logger.info({
-            message: "RESPONSE",
-            url: req.url,
-            method: req.method,
-            statusCode: res.statusCode,
-            responseMessage: JSON.stringify(res.body),
-            ExecutionTime: `${ms}ms`
-        });
-    });
-    next();
+  });
+  next();
 });
 
 // routes:
 app.use('/', router);
-app.use('/user', userRouter);
+app.use('/auth', authRouter);
 app.use('/blog', blogRouter);
+app.use('/user', userRouter);
 
 app.get('/test', (req, res) => {
-    res.status(200).json({ msg: "OK" })
+  res.status(200).json({ msg: "OK" })
 });
+
 
 app.use((req, res) => {
-    logger.error({ error: "HTTP 404! Page Not Found" })
-    res.status(404).json({
-        success: false,
-        message: "Page Not Found"
-    })
+  logger.error({ error: "HTTP 404! Page Not Found" });
+
+  res.status(404).json({
+    success: false,
+    message: "Page Not Found"
+  });
 });
 
-app.use((err, req, res) => {
-    logger.error({ "error": err })
-    res.status(500).json({
-        success: false,
-        message: "Internal Server Error"
-    })
+app.use((err, req, res, next) => {
+  logger.error({
+    error: err.message,
+    stack: err.stack
+  });
+
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error"
+  });
+  next()
 });
-
-// ejs - legacy flow
-app.set('view engine', 'ejs')
-app.set('views', path.join(__dirname, "views-legacy"))
-
-

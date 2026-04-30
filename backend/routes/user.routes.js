@@ -1,12 +1,10 @@
 import { Router } from 'express';
-import { signup, signin } from '../controllers/auth.controller.js'
 import { protect } from "../middleware/auth.middleware.js"
-import { getProfile } from "../controllers/user.controller.js"
+import { updateProfileImg, deleteProfileImage, userList } from "../controllers/user.controller.js"
 import { profileImage } from "../utils/uploads.utils.js"
 export const userRouter = Router();
 
-userRouter.post('/signin', signin);
+userRouter.get('/userList',protect, userList);
+userRouter.post('/profileImg', protect, profileImage.single("profileImage"), updateProfileImg);
+userRouter.delete('/profileImg', protect, deleteProfileImage);
 
-userRouter.post('/signup', profileImage.single("profileImage"), signup);
-
-userRouter.get("/profile", protect, getProfile);

@@ -24,6 +24,7 @@ export async function newBlog(req, res) {
             });
 
             return res.status(400).json({
+                success: false,
                 message: "Mandatory field missing",
                 title: req.body?.title || null,
                 body: req.body?.body || null,
@@ -66,7 +67,7 @@ export async function newBlog(req, res) {
             createdBy: newBlog.createdBy
         })
 
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
             message: "Blog Created Successfully",
             title: newBlog.title,

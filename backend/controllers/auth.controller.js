@@ -3,10 +3,9 @@ import { logger } from "../utils/logger.utils.js";
 import bcrypt from "bcrypt";
 import { isValidEmail, isValidPassword } from "../utils/validation.utils.js";
 import { loginTokenGeneration } from '../utils/auth.utils.js'
-import { defaultImgPath } from '../config/env.js'
-import path from "path";
+import { emailRegex, ADMIN_PASSWORD } from '../config/env.js'
 export async function signup(req, res) {
-    const { fullName, email, username, password } = req.body;
+    const { fullName, email, username, password, role, adminPassword } = req.body;
 
     try {
         logger.info({
@@ -14,7 +13,6 @@ export async function signup(req, res) {
             "fullName": fullName,
             "email": email,
             "username": username,
-            "file_path": req.file?.path || defaultImgPath,
         });
 
         // isValidation
@@ -27,16 +25,12 @@ export async function signup(req, res) {
 
         const normalizedUsername = username.trim().toLowerCase();
         const normalizedEmail = email.trim().toLowerCase();
-        const filePath = req.file?.path || defaultImgPath;
-        const currentDirectory = process.cwd();
-        const profileImageURL = req.file?.path ? path.relative(filePath, currentDirectory) : defaultImgPath
 
         logger.info({
             "Message": "Normalized Values.",
             "fullName": fullName,
             "email": normalizedEmail,
             "username": normalizedUsername,
-            "profileImageURL": profileImageURL,
         });
 
         const passwordCheck = isValidPassword(password);
@@ -97,14 +91,34 @@ export async function signup(req, res) {
             }
         }
 
-        // create user:
-        const user = await User.create({
-            fullName,
-            email: normalizedEmail,
-            username: normalizedUsername,
-            password,
-            profileImageURL
-        });
+        if (adminPassword) {
+            if (adminPassword !== ADMIN_PASSWORD) {
+                logger.error({
+                    error: "Admin password is incorrect",
+                    "fullName": fullName,
+                    "email": normalizedEmail,
+                    "username": normalizedUsername,
+
+                });
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Admin password is incorrect"
+                });
+            }
+        }
+
+        const isAdminSignup = role === "ADMIN" && adminPassword === ADMIN_PASSWORD;
+
+        const user = await User.create(
+            {
+                fullName,
+                email: normalizedEmail,
+                username: normalizedUsername,
+                password,
+                role: isAdminSignup ? "ADMIN" : "USER"
+            });
+        // }
         logger.info({
             message: "User Created in DB",
             userId: user._id,
@@ -159,7 +173,7 @@ export async function signin(req, res) {
         }
 
         const normalizedLoginId = loginId.trim().toLowerCase();
-        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedLoginId);
+        const isEmail = emailRegex.test(normalizedLoginId);
 
         logger.info({
             message: "Signin Request Received",

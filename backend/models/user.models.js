@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
+import { defaultImgPath } from "../config/env.js"
 import { logger } from '../utils/logger.utils.js';
 
 
@@ -25,7 +26,7 @@ const userSchema = new Schema({
     },
     profileImageURL: {
         type: String,
-        default: 'public/image/defaultImage.png'
+        default: defaultImgPath
 
     },
     role: {

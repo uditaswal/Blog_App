@@ -1,4 +1,4 @@
-import { ENVIRONMENT, PORT, ENDPOINT, dbURL, mongoDBServerSelectionTimeoutMS, mongoDBConnectTimeoutMS, sessionSecretKey } from './config/env.js'
+import { ENVIRONMENT, PORT, ENDPOINT, dbURL, mongoDBServerSelectionTimeoutMS, mongoDBConnectTimeoutMS, mongoDBConnectionRetryCount } from './config/env.js'
 import { logger } from './utils/logger.utils.js';
 import connectMongoDB from './dbConnection.js';
 import { app } from './app.js';
@@ -7,7 +7,7 @@ import { app } from './app.js';
 
 async function startServer() {
     try {
-        await connectMongoDB(dbURL, mongoDBServerSelectionTimeoutMS, mongoDBConnectTimeoutMS);
+        await connectMongoDB(dbURL, mongoDBServerSelectionTimeoutMS, mongoDBConnectTimeoutMS, mongoDBConnectionRetryCount);
         app.listen(PORT, () => {
             logger.info(`Server running on port ${PORT} on ${ENVIRONMENT} env at ${ENDPOINT}${PORT}`);
         });

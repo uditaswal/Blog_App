@@ -3,14 +3,30 @@ import multer from "multer"
 import path from "path";
 import fs from "fs";
 import { logger } from "./logger.utils.js";
+import AppError from "../errors/AppError.js"
 
 export function createUploader(folderName, filePrefix) {
 
+    const fileTypeFilter = (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            logger.error({
+                error: "Only image files are allowed!",
+                username: req.user,
+                file_originalname: file.originalname,
+
+            })
+            const err = new Error("Only image files are allowed");
+            err.statusCode = 400;
+            cb(new AppError("Only image files are allowed", 400)
+                , false)
+        }
+    }
 
     const storage = multer.diskStorage({
 
         destination: function (req, file, cb) {
-
             try {
                 const dir = filePrefix === "profileImage" ? path.resolve(`./public/uploads/${folderName}/`) : path.resolve(`./public/uploads/${folderName}/${req.user.userId}`);
                 fs.mkdirSync(dir, { recursive: true });
@@ -34,7 +50,7 @@ export function createUploader(folderName, filePrefix) {
             try {
                 const uniqueSuffix = Date.now() + "_" + Math.round(Math.random() * 1e9);
                 const ext = path.extname(file.originalname);
-                const fileName = filePrefix === "profileImage" ? `${filePrefix}_${req.body.username}_${uniqueSuffix}${ext}` : `${filePrefix}_${uniqueSuffix}${ext}`;
+                const fileName = filePrefix === "profileImage" ? `${filePrefix}_${req.user.userId}_${uniqueSuffix}${ext}` : `${filePrefix}_${uniqueSuffix}${ext}`;
                 logger.info(
                     {
                         message: `${fileName} created successfully`,
@@ -57,9 +73,11 @@ export function createUploader(folderName, filePrefix) {
         },
     })
 
-
-    return multer({ storage: storage })
-
+    return multer({
+        storage: storage,
+        fileFilter: fileTypeFilter,
+        limits: { fileSize: 10 * 1024 * 1024 }
+    })
 }
 
 export const coverUpload =

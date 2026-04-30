@@ -8,7 +8,8 @@ export function loginTokenGeneration(req, res, user) {
             {
                 userId: user._id,
                 username: user.username,
-                fullName: user.fullName
+                fullName: user.fullName,
+                role: user.role,
             }, JWT_SECRET,
             { expiresIn: "7d" },
         )
@@ -31,8 +32,10 @@ export function loginTokenGeneration(req, res, user) {
             message: "Sign successful",
             data: {
                 fullName: user.fullName,
-                loginId: user.loginId,
+                username: user.username,
+                email: user.email,
                 id: user._id,
+                role: user.role,
                 token: !isProd ? token : "Generated Successfully"
             }
         })
