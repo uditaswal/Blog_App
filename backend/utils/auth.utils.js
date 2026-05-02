@@ -1,6 +1,7 @@
 import { JWT_SECRET, isProd } from "../config/env.js"
 import jwt from "jsonwebtoken";
 import { logger } from "../utils/logger.utils.js";
+import { sendResponse } from "./response.utils.js";
 
 export function loginTokenGeneration(req, res, user) {
     try {
@@ -27,17 +28,13 @@ export function loginTokenGeneration(req, res, user) {
             })
 
 
-        return res.status(200).json({
-            success: true,
-            message: "Sign successful",
-            data: {
-                fullName: user.fullName,
-                username: user.username,
-                email: user.email,
-                id: user._id,
-                role: user.role,
-                token: !isProd ? token : "Generated Successfully"
-            }
+        return sendResponse(res, 200, "Sign successful", {
+            fullName: user.fullName,
+            username: user.username,
+            email: user.email,
+            id: user._id,
+            role: user.role,
+            token: !isProd ? token : "Generated Successfully"
         })
     } catch (error) {
         logger.info(
@@ -47,8 +44,5 @@ export function loginTokenGeneration(req, res, user) {
             })
     }
 
-    res.status(500).json({
-        success: false,
-        message: "Error occurred while creating token"
-    });
+    return sendResponse(res, 500, "Error occurred while creating token");
 };

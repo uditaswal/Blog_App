@@ -2,6 +2,7 @@ import { isProd } from "../config/env.js";
 import { Blog } from "../models/blog.model.js";
 import { logger } from "../utils/logger.utils.js";
 import path from "path";
+import { sendResponse } from "../utils/response.utils.js";
 
 export async function newBlog(req, res) {
     const { title, body } = req.body;
@@ -11,11 +12,11 @@ export async function newBlog(req, res) {
             logger.info({
                 message: "Request received for creating New Blog",
                 body: req.body,
-                file_path: req.file.path
+                file_path: req.file?.path || null
             });
         }
 
-        if (!title || !body || !req.file.path) {
+        if (!title || !body || !req.file?.path) {
             logger.info({
                 message: "Mandatory field missing",
                 title: req.body?.title || null,
@@ -23,9 +24,7 @@ export async function newBlog(req, res) {
                 coverImagePath: req.body?.coverImagePath || null,
             });
 
-            return res.status(400).json({
-                success: false,
-                message: "Mandatory field missing",
+            return sendResponse(res, 400, "Mandatory field missing", {
                 title: req.body?.title || null,
                 body: req.body?.body || null,
                 coverImagePath: req.body?.coverImagePath || null
@@ -42,8 +41,7 @@ export async function newBlog(req, res) {
 
             });
 
-            return res.status(400).json({
-                message: "Title and Body should be more than 1 character long",
+            return sendResponse(res, 400, "Title and Body should be more than 1 character long", {
                 title: normalizedTitle,
                 body: normalizedBody,
             })
@@ -67,9 +65,7 @@ export async function newBlog(req, res) {
             createdBy: newBlog.createdBy
         })
 
-        return res.status(201).json({
-            success: true,
-            message: "Blog Created Successfully",
+        return sendResponse(res, 201, "Blog Created Successfully", {
             title: newBlog.title,
             createdBy: newBlog.createdBy
         })
@@ -84,9 +80,7 @@ export async function newBlog(req, res) {
 
         });
 
-        res.status(500).json({
-            success: false,
-            message: "Error while creating new blog",
+        return sendResponse(res, 500, "Error while creating new blog", {
             title: req.title
         })
 

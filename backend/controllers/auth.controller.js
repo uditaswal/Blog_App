@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { isValidEmail, isValidPassword } from "../utils/validation.utils.js";
 import { loginTokenGeneration } from '../utils/auth.utils.js'
 import { emailRegex, ADMIN_PASSWORD } from '../config/env.js'
+import { sendResponse } from "../utils/response.utils.js";
 export async function signup(req, res) {
     const { fullName, email, username, password, role, adminPassword } = req.body;
 
@@ -17,10 +18,7 @@ export async function signup(req, res) {
 
         // isValidation
         if (!fullName || !email || !password || !username) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required"
-            });
+            return sendResponse(res, 400, "All fields are required");
         }
 
         const normalizedUsername = username.trim().toLowerCase();
@@ -35,18 +33,12 @@ export async function signup(req, res) {
 
         const passwordCheck = isValidPassword(password);
         if (!passwordCheck.isValid) {
-            return res.status(400).json({
-                success: false,
-                message: passwordCheck.message
-            });
+            return sendResponse(res, 400, passwordCheck.message);
         }
 
         const emailCheck = isValidEmail(normalizedEmail);;
         if (!emailCheck.isValid) {
-            return res.status(400).json({
-                success: false,
-                message: emailCheck.message
-            })
+            return sendResponse(res, 400, emailCheck.message)
         }
 
         if (normalizedUsername.length >= 20 || normalizedUsername.length <= 6) {
@@ -58,10 +50,7 @@ export async function signup(req, res) {
                 "username_length": normalizedUsername.length
             })
 
-            return res.status(400).json({
-                success: false,
-                message: "username should be either more than 6 digit and less than 20 digit long"
-            })
+            return sendResponse(res, 400, "username should be either more than 6 digit and less than 20 digit long")
 
         }
 
@@ -77,17 +66,11 @@ export async function signup(req, res) {
         if (existingUser) {
             if (existingUser.email === normalizedEmail) {
                 logger.error({ "error": `${email} already exist in DB` })
-                return res.status(400).json({
-                    success: false,
-                    message: "Email already registered. Please sign in."
-                });
+                return sendResponse(res, 400, "Email already registered. Please sign in.");
 
             } else if (existingUser.username === normalizedUsername) {
                 logger.error({ "error": `${username} already exist in DB` })
-                return res.status(400).json({
-                    success: false,
-                    message: "Username already taken."
-                });
+                return sendResponse(res, 400, "Username already taken.");
             }
         }
 
@@ -101,10 +84,7 @@ export async function signup(req, res) {
 
                 });
 
-                return res.status(400).json({
-                    success: false,
-                    message: "Admin password is incorrect"
-                });
+                return sendResponse(res, 400, "Admin password is incorrect");
             }
         }
 
@@ -127,16 +107,12 @@ export async function signup(req, res) {
             username: normalizedUsername
         });
 
-        return res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            data: {
-                "user": {
-                    "id": user._id,
-                    "fullName": user.fullName,
-                    "email": user.email,
-                    "username": user.username
-                }
+        return sendResponse(res, 201, "User registered successfully", {
+            "user": {
+                "id": user._id,
+                "fullName": user.fullName,
+                "email": user.email,
+                "username": user.username
             }
         });
 
@@ -148,10 +124,7 @@ export async function signup(req, res) {
             email: email,
             username: username
         });
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-        })
+        return sendResponse(res, 500, "Internal Server Error")
     }
 };
 
@@ -166,10 +139,7 @@ export async function signin(req, res) {
                 loginId: loginId || null
             });
 
-            return res.status(400).json({
-                success: false,
-                message: "Mandatory field missing for signin"
-            });
+            return sendResponse(res, 400, "Mandatory field missing for signin");
         }
 
         const normalizedLoginId = loginId.trim().toLowerCase();
@@ -188,10 +158,7 @@ export async function signin(req, res) {
                 loginId: normalizedLoginId
             });
 
-            return res.status(400).json({
-                success: false,
-                message: "Password should contain - one lowercase,one uppercase,one number,one special character,minimum 8 chars"
-            })
+            return sendResponse(res, 400, "Password should contain - one lowercase,one uppercase,one number,one special character,minimum 8 chars")
         }
 
         if (isEmail) {
@@ -203,10 +170,7 @@ export async function signin(req, res) {
                     loginId: loginId
                 });
 
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid Email Address"
-                })
+                return sendResponse(res, 400, "Invalid Email Address")
             }
 
         }
@@ -219,10 +183,7 @@ export async function signin(req, res) {
                 loginId: normalizedLoginId
             })
 
-            return res.status(400).json({
-                success: false,
-                message: "Sign in failed - User does not exist",
-            });
+            return sendResponse(res, 400, "Sign in failed - User does not exist");
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password);
@@ -233,10 +194,7 @@ export async function signin(req, res) {
                 loginId: normalizedLoginId
             })
 
-            return res.status(400).json({
-                success: false,
-                message: "Sign in failed - Incorrect Password",
-            });
+            return sendResponse(res, 400, "Sign in failed - Incorrect Password");
         }
         return loginTokenGeneration(req, res, user);
     } catch (err) {
@@ -245,11 +203,7 @@ export async function signin(req, res) {
             error: err
         })
 
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-
-        })
+        return sendResponse(res, 500, "Internal Server Error")
 
     }
 
@@ -269,10 +223,7 @@ export function signout(req, res, user) {
             })
 
 
-        res.status(200).json({
-            success: true,
-            message: "Logged out"
-        });
+        return sendResponse(res, 200, "Logged out");
     } catch (error) {
         logger.info(
             {
@@ -281,9 +232,6 @@ export function signout(req, res, user) {
             })
     }
 
-    res.status(500).json({
-        success: false,
-        message: "Error occurred while logging out"
-    });
+    return sendResponse(res, 500, "Error occurred while logging out");
 }
 

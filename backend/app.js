@@ -6,6 +6,7 @@ import { authRouter } from './routes/auth.routes.js';
 import { blogRouter } from './routes/blogs.routes.js';
 import { userRouter } from './routes/user.routes.js';
 import { logger } from './utils/logger.utils.js';
+import { sendResponse } from './utils/response.utils.js';
 import cookieParser from "cookie-parser";
 import { frontEndOrigin } from "./config/env.js"
 import cors from "cors";
@@ -66,17 +67,14 @@ app.use('/blog', blogRouter);
 app.use('/user', userRouter);
 
 app.get('/test', (req, res) => {
-  res.status(200).json({ msg: "OK" })
+  return sendResponse(res, 200, "OK")
 });
 
 
 app.use((req, res) => {
   logger.error({ error: "HTTP 404! Page Not Found" });
 
-  res.status(404).json({
-    success: false,
-    message: "Page Not Found"
-  });
+  return sendResponse(res, 404, "Page Not Found");
 });
 
 app.use((err, req, res, next) => {
@@ -85,9 +83,5 @@ app.use((err, req, res, next) => {
     stack: err.stack
   });
 
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error"
-  });
-  next()
+  return sendResponse(res, err.statusCode || 500, err.message || "Internal Server Error");
 });

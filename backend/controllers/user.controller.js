@@ -1,11 +1,12 @@
 
+import mongoose from "mongoose"
 import { logger } from "../utils/logger.utils.js"
 import User from "../models/user.models.js"
 import path from "path";
 import { defaultImgPath } from "../config/env.js"
+import { sendResponse } from "../utils/response.utils.js";
 
-export async function userList(req, res) {
-
+export async function getAllUsersList(req, res) {
     try {
         if (!req.user) {
             logger.info({
@@ -14,11 +15,7 @@ export async function userList(req, res) {
                 email: req?.user.email || null
             })
 
-            return res.status(400).json({
-                success: false,
-                message: "Authentication failed, Sign in Again",
-
-            });
+            return sendResponse(res, 400, "Authentication failed, Sign in Again");
         }
         logger.info({
             message: "Request received to fetch user data",
@@ -34,33 +31,33 @@ export async function userList(req, res) {
                 user: req.user
             })
 
-            return res.status(400).json({
-                success: false,
-                message: "ADMIN privilege is required to fetch user list",
-
-            });
+            return sendResponse(res, 400, "ADMIN privilege is required to fetch user list");
         }
 
-        const usersList = await User.find({})
-        const users_list_json = JSON.stringify(usersList);
+        const usersList = await User.find({}).lean();
 
-        // for (users in users_list_json) {
-        //     console.log(`${users_list_json.username[users]}`)
-        // }
+        if (!usersList) {
+            logger.info({
+                message: "No users found",
+                username: req.user.loginId,
+                email: req.user.email,
+            })
+            return sendResponse(res, 404, "No users not found");
+        }
 
 
+        const formattedUserList = usersList.map(user => ({
+            ...user,
+            _id: user._id.toString()
+        }));
 
         logger.info({
             message: "User list fetched successfully",
-            usersList: users_list_json,
+            usersList: formattedUserList,
             // usersList_Length: usersList.length;
         })
 
-        return res.status(200).json({
-            success: false,
-            message: "User list fetched successfully",
-
-        });
+        return sendResponse(res, 200, "User list fetched successfully", { users: formattedUserList });
 
 
 
@@ -73,13 +70,204 @@ export async function userList(req, res) {
         })
 
 
-        return res.status(500).json({
-            success: false,
-            message: "Error while fetching user data"
-        })
+        return sendResponse(res, 500, "Error while fetching user data")
     }
 
 }
+export async function getUserById(req, res) {
+    try {
+        if (!req.user) {
+            logger.info({
+                message: "user token is not present in request",
+                username: req?.user.loginId || null,
+                email: req?.user.email || null
+            })
+
+            return sendResponse(res, 400, "Authentication failed, Sign in Again");
+        }
+
+        const { id } = req.params;
+
+        if (!id) {
+            logger.info({
+                message: "user id token is not present in request",
+                username: req?.user.loginId || null,
+                email: req?.user.email || null,
+                id: req?.params || null
+            })
+
+            return sendResponse(res, 400, "user id token is not present in request");
+        }
+
+
+        logger.info({
+            message: "Request received to fetch user data",
+            username: req?.user.loginId,
+            email: req.user.email,
+            id: id,
+        })
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return sendResponse(res, 400, "Invalid user ID");
+        }
+
+
+        if (req.user.role !== "ADMIN") {
+            logger.info({
+                message: "ADMIN privilege is required to fetch user list",
+                username: req.user.loginId,
+                email: req.user.email,
+                user: req.user
+            })
+
+            return sendResponse(res, 400, "ADMIN privilege is required to fetch user list");
+        }
+
+        const users = await User.findById(id).lean();
+
+
+        // for (users in users_list_json) {
+        //     console.log(`${users_list_json.username[users]}`)
+        // }
+
+        if (!users) {
+            logger.info({
+                message: "User not found",
+                username: req.user.loginId,
+                email: req.user.email,
+                id: id,
+            })
+
+
+
+            return sendResponse(res, 404, "User not found");
+        }
+
+
+        const formattedUserData = {
+            ...users,
+            _id: users._id.toString()
+        };
+
+        logger.info({
+            message: "User  fetched successfully",
+            usersList: formattedUserData,
+        })
+
+        return sendResponse(res, 200, "User data fetched successfully", { users: formattedUserData });
+
+
+
+    } catch (error) {
+
+        logger.error({
+            message: "Error while fetching user data",
+            error: error,
+            body: req.body
+        })
+
+
+        return sendResponse(res, 500, "Error while fetching user data")
+    }
+}
+
+export async function deleteUserById(req, res) {
+    try {
+        if (!req.user) {
+            logger.info({
+                message: "user token is not present in request",
+                username: req?.user.loginId || null,
+                email: req?.user.email || null
+            })
+
+            return sendResponse(res, 400, "Authentication failed, Sign in Again");
+        }
+
+        const { id } = req.params;
+
+        if (!id) {
+            logger.info({
+                message: "user id token is not present in request",
+                username: req?.user.loginId || null,
+                email: req?.user.email || null,
+                id: req?.params || null
+            })
+
+            return sendResponse(res, 400, "user id token is not present in request");
+        }
+
+
+        logger.info({
+            message: "Request received to fetch user data",
+            username: req?.user.loginId,
+            email: req.user.email,
+            id: id,
+        })
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return sendResponse(res, 400, "Invalid user ID");
+        }
+
+
+        if (req.user.role !== "ADMIN") {
+            logger.info({
+                message: "ADMIN privilege is required to fetch user list",
+                username: req.user.loginId,
+                email: req.user.email,
+                user: req.user
+            })
+
+            return sendResponse(res, 400, "ADMIN privilege is required to fetch user list");
+        }
+
+        const users = await User.findById(id).lean();
+
+        if (!users) {
+            logger.info({
+                message: "User not found",
+                username: req.user.loginId,
+                email: req.user.email,
+                id: id,
+            })
+
+
+
+            return sendResponse(res, 404, "User not found");
+        }
+
+
+        const formattedUserData = {
+            ...users,
+            _id: users._id.toString()
+        };
+
+        logger.info({
+            message: "User  fetched successfully",
+            usersList: formattedUserData,
+        })
+
+        await User.findByIdAndDelete(id);
+
+
+        return sendResponse(res, 200, "User deleted successfully", { users: formattedUserData });
+
+
+
+    } catch (error) {
+
+        logger.error({
+            message: "Error while deleting user data",
+            error: error,
+            body: req.body
+        })
+
+
+        return sendResponse(res, 500, "Error while deleting user data")
+    }
+
+}
+
+
 
 export async function updateProfileImg(req, res) {
     try {
@@ -88,7 +276,7 @@ export async function updateProfileImg(req, res) {
             email: req?.body.email || null,
             username: req?.body.username || null,
             userId: req?.user.userId || null,
-            file_path: req?.file.path || null
+            file_path: req?.file?.path || null
 
         })
         if (!req.user.userId) {
@@ -97,20 +285,14 @@ export async function updateProfileImg(req, res) {
                 body: req.body,
                 user: req.user,
             })
-            res.status(403).json({
-                success: false,
-                message: "Please sign in again"
-            })
-        } if (!req.file.path) {
+            return sendResponse(res, 403, "Please sign in again")
+        } if (!req.file?.path) {
             logger.error({
                 error: "Picture not found in request",
                 body: req.body,
                 user: req.user,
             })
-            res.status(400).json({
-                success: false,
-                message: "Picture not found, please upload again"
-            })
+            return sendResponse(res, 400, "Picture not found, please upload again")
         }
 
         const file_path = req.file.path;
@@ -128,10 +310,7 @@ export async function updateProfileImg(req, res) {
             profileImagePath: profileImagePath
         })
 
-        res.status(200).json({
-            success: true,
-            message: "Profile Image uploaded successfully",
-        })
+        return sendResponse(res, 200, "Profile Image uploaded successfully")
 
     } catch (error) {
 
@@ -143,10 +322,7 @@ export async function updateProfileImg(req, res) {
             username: req.body.username,
         })
 
-        res.status(500).json({
-            success: false,
-            message: "Error while uploading profile image"
-        })
+        return sendResponse(res, 500, "Error while uploading profile image")
     }
 }
 
@@ -159,10 +335,7 @@ export async function deleteProfileImage(req, res) {
                 email: req?.user.email || null,
             });
 
-            return res.status(403).json({
-                success: false,
-                message: "Authentication failed, Signin Again"
-            })
+            return sendResponse(res, 403, "Authentication failed, Signin Again")
         }
 
         logger.info({
@@ -182,10 +355,7 @@ export async function deleteProfileImage(req, res) {
             user: user.email,
         })
 
-        return res.status(200).json({
-            success: true,
-            message: "Profile Picture deleted successfully",
-        })
+        return sendResponse(res, 200, "Profile Picture deleted successfully")
 
     } catch (error) {
         logger.error({
@@ -195,11 +365,7 @@ export async function deleteProfileImage(req, res) {
             error: error
         });
 
-        return res.status(500).json({
-            success: false,
-            message: "Error while deleting profileImage",
-
-        })
+        return sendResponse(res, 500, "Error while deleting profileImage")
     }
 
 }

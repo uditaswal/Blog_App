@@ -1,7 +1,8 @@
 import { Router } from 'express';
+import { sendResponse } from '../utils/response.utils.js';
 export const router = Router();
 
 router.get('/', (req, res) => {
-    res.status(200).json({ msg: "Hello from Server" })
+    return sendResponse(res, 200, "Hello from Server")
 
 });
