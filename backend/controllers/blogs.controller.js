@@ -10,6 +10,8 @@ export async function newBlog(req, res) {
     try {
         if (!isProd) {
             logger.info({
+                operation: "create_blog",
+                action: "received",
                 message: "Request received for creating New Blog",
                 body: req.body,
                 file_path: req.file?.path || null
@@ -18,6 +20,8 @@ export async function newBlog(req, res) {
 
         if (!title || !body || !req.file?.path) {
             logger.info({
+                operation: "create_blog",
+                action: "required_fields_missing",
                 message: "Mandatory field missing",
                 title: req.body?.title || null,
                 body: req.body?.body || null,
@@ -35,6 +39,8 @@ export async function newBlog(req, res) {
         const normalizedBody = body.trim();
         if (normalizedTitle.length <= 1 || normalizedBody.length <= 1) {
             logger.info({
+                operation: "create_blog",
+                action: "validation_failed",
                 message: "Title and Body should be more than 1 character long",
                 title: normalizedTitle,
                 body: normalizedBody,
@@ -59,6 +65,8 @@ export async function newBlog(req, res) {
         })
 
         logger.info({
+            operation: "create_blog",
+            action: "completed",
             message: "Blog Created Successfully",
             title: newBlog.title,
             coverImagePath: relativePath,
@@ -72,6 +80,8 @@ export async function newBlog(req, res) {
 
     } catch (error) {
         logger.error({
+            operation: "create_blog",
+            action: "failed",
             "message": "Error while creating new blog",
             "error": error,
             title: req.title,

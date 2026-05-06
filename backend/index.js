@@ -9,11 +9,19 @@ async function startServer() {
     try {
         await connectMongoDB(dbURL, mongoDBServerSelectionTimeoutMS, mongoDBConnectTimeoutMS, mongoDBConnectionRetryCount);
         app.listen(PORT, () => {
-            logger.info(`Server running on port ${PORT} on ${ENVIRONMENT} env at ${ENDPOINT}${PORT}`);
+            logger.info({
+                operation: "start_server",
+                action: "completed",
+                message: `Server running on port ${PORT} on ${ENVIRONMENT} env at ${ENDPOINT}${PORT}`,
+                port: PORT,
+                environment: ENVIRONMENT
+            });
         });
 
     } catch (error) {
         logger.error({
+            operation: "start_server",
+            action: "failed",
             message: "Startup failed",
             error: error?.message,
             stack: error?.stack

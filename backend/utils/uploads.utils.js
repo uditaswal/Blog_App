@@ -12,8 +12,10 @@ export function createUploader(folderName, filePrefix) {
             cb(null, true);
         } else {
             logger.error({
+                operation: "upload_file",
+                action: "invalid_file_type",
                 error: "Only image files are allowed!",
-                username: req.user,
+                user: req.user,
                 file_originalname: file.originalname,
 
             })
@@ -32,6 +34,8 @@ export function createUploader(folderName, filePrefix) {
                 fs.mkdirSync(dir, { recursive: true });
                 logger.info(
                     {
+                        operation: "upload_file",
+                        action: "directory_created",
                         message: `${dir} created successfully for ${filePrefix}`,
                         request: req.body,
                         username: req.user
@@ -41,6 +45,8 @@ export function createUploader(folderName, filePrefix) {
             } catch (error) {
                 logger.info(
                     {
+                        operation: "upload_file",
+                        action: "directory_create_failed",
                         message: `Error while creating directory for uploading ${filePrefix}`,
                         error: error
                     })
@@ -53,9 +59,11 @@ export function createUploader(folderName, filePrefix) {
                 const fileName = filePrefix === "profileImage" ? `${filePrefix}_${req.user.userId}_${uniqueSuffix}${ext}` : `${filePrefix}_${uniqueSuffix}${ext}`;
                 logger.info(
                     {
+                        operation: "upload_file",
+                        action: "filename_created",
                         message: `${fileName} created successfully`,
                         request: req.body,
-                        username: req.user,
+                        user: req.user,
                         file_originalname: file.originalname,
                         fileName: fileName
 
@@ -66,6 +74,8 @@ export function createUploader(folderName, filePrefix) {
             } catch (error) {
                 logger.info(
                     {
+                        operation: "upload_file",
+                        action: "filename_create_failed",
                         message: `Error while creating name for ${filePrefix}`,
                         error: error
                     })

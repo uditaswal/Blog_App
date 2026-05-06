@@ -9,7 +9,6 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
-
     username: {
         type: String,
         required: true,
@@ -23,6 +22,9 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: true,
+        select: false,
+
+
     },
     profileImageURL: {
         type: String,
@@ -46,13 +48,19 @@ userSchema.pre('save', async function () {
         this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
 
         logger.info({
+            operation: "hash_user_password",
+            action: "completed",
             message: "User password hashed before save",
             userId: this._id,
             email: this.email
         });
 
     } catch (error) {
-        logger.error({ error: error });
+        logger.error({
+            operation: "hash_user_password",
+            action: "failed",
+            error: error
+        });
     }
 
 })

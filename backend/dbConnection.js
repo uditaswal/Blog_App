@@ -10,10 +10,20 @@ export default async function connectMongoDB(dbURL, mongoDBServerSelectionTimeou
             await mongoose.connect(dbURL, {
                 serverSelectionTimeoutMS: mongoDBServerSelectionTimeoutMS, connectTimeoutMS: mongoDBConnectTimeoutMS
             })
-            logger.info(`MongoDB Connected`)
+            logger.info({
+                operation: "connect_database",
+                action: "completed",
+                message: "MongoDB Connected"
+            })
             break;
         } catch (error) {
-            logger.error(`Error while connecting to MongoDB : Remaining retries ${mongoDBConnectionRetryCount} : ${error}`);
+            logger.error({
+                operation: "connect_database",
+                action: "retry",
+                message: "Error while connecting to MongoDB",
+                remainingRetries: mongoDBConnectionRetryCount,
+                error: error
+            });
             mongoDBConnectionRetryCount--;
             await new Promise(r => setTimeout(r, 5000));
         }

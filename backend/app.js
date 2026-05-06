@@ -5,8 +5,10 @@ import { router } from './routes/app.routes.js';
 import { authRouter } from './routes/auth.routes.js';
 import { blogRouter } from './routes/blogs.routes.js';
 import { userRouter } from './routes/user.routes.js';
+import { adminRouter } from './routes/admin.routes.js';
 import { logger } from './utils/logger.utils.js';
 import { sendResponse } from './utils/response.utils.js';
+import { sanitizeMiddleware } from './middleware/sanitizeResponse.middleware.js';
 import cookieParser from "cookie-parser";
 import { frontEndOrigin } from "./config/env.js"
 import cors from "cors";
@@ -36,8 +38,9 @@ app.use((req, res, next) => {
     res.locals.responseBody = body;
     return originalJson.call(this, body);
   };
-  // logger.info(`REQ ${req.method} ${req.url} BODY=${JSON.stringify(req.body)}`);
   logger.info({
+    operation: "http_request",
+    action: "received",
     message: "REQUEST",
     url: req.url,
     method: req.method,
@@ -48,6 +51,8 @@ app.use((req, res, next) => {
     const ms = Date.now() - start;
 
     logger.info({
+      operation: "http_request",
+      action: "completed",
       message: "RESPONSE",
       url: req.url,
       method: req.method,
@@ -59,11 +64,13 @@ app.use((req, res, next) => {
   });
   next();
 });
+app.use(sanitizeMiddleware());
 
 // routes:
 app.use('/', router);
 app.use('/auth', authRouter);
 app.use('/blog', blogRouter);
+app.use('/admin', adminRouter);
 app.use('/user', userRouter);
 
 app.get('/test', (req, res) => {
@@ -72,13 +79,19 @@ app.get('/test', (req, res) => {
 
 
 app.use((req, res) => {
-  logger.error({ error: "HTTP 404! Page Not Found" });
+  logger.error({
+    operation: "http_request",
+    action: "not_found",
+    error: "HTTP 404! Page Not Found"
+  });
 
   return sendResponse(res, 404, "Page Not Found");
 });
 
 app.use((err, req, res, next) => {
   logger.error({
+    operation: "http_request",
+    action: "failed",
     error: err.message,
     stack: err.stack
   });

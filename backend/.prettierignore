@@ -10,3 +10,4 @@ uploads
 public/uploads
 *.min.js
 *.min.css
+.vscode/

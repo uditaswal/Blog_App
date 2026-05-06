@@ -53,7 +53,6 @@ function getCaller() {
                 !normalized.endsWith("/logger.utils.js") &&
                 !normalized.includes("node:internal")
 
-
             ) {
                 return {
                     file: path.basename(file),
@@ -68,7 +67,6 @@ function getCaller() {
         Error.prepareStackTrace = old;
     }
 }
-
 
 export const sanitize = (info) => {
     if (!isProd) return info;
@@ -115,7 +113,7 @@ const orderedJsonFormat = winston.format.printf((info) => {
 
 const orderedFormat = winston.format((info) => {
     // Pull out all known keys
-    const { level, timestamp, message, url, method, statusCode,
+    const { level, timestamp, operation, action, message, url, method, statusCode,
         ExecutionTime, body, file, path, line, ...rest } = info;
 
     // Delete all enumerable keys from info
@@ -130,6 +128,8 @@ const orderedFormat = winston.format((info) => {
     // Re-assign in the exact order you want
     defined('timestamp', timestamp);
     defined('level', level);
+    defined('operation', operation);
+    defined('action', action);
     defined('message', message);
     defined('method', method);
     defined('url', url);
@@ -201,6 +201,10 @@ export const logger = {
 
 
 
-logger.info('Logger started');
+logger.info({
+    operation: "start_logger",
+    action: "completed",
+    message: "Logger started"
+});
 
 

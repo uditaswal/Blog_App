@@ -5,10 +5,16 @@ node_modules/
 logs/
 *.logs
 
+local_docs/
 tree.md
+plan.md
 task.md
+issues.md
+product_checklist.md
+learning.md
 
+backend/public/uploads/
 # Added by ggshield
 .cache_ggshield
 
-
+.vscode/

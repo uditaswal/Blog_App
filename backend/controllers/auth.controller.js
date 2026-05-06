@@ -5,15 +5,18 @@ import { isValidEmail, isValidPassword } from "../utils/validation.utils.js";
 import { loginTokenGeneration } from '../utils/auth.utils.js'
 import { emailRegex, ADMIN_PASSWORD } from '../config/env.js'
 import { sendResponse } from "../utils/response.utils.js";
+
 export async function signup(req, res) {
     const { fullName, email, username, password, role, adminPassword } = req.body;
 
     try {
         logger.info({
-            "Message": "Sign up request received.",
-            "fullName": fullName,
-            "email": email,
-            "username": username,
+            operation: "signup",
+            action: "received",
+            message: "Sign up request received.",
+            fullName: fullName,
+            email: email,
+            username: username,
         });
 
         // isValidation
@@ -25,10 +28,12 @@ export async function signup(req, res) {
         const normalizedEmail = email.trim().toLowerCase();
 
         logger.info({
-            "Message": "Normalized Values.",
-            "fullName": fullName,
-            "email": normalizedEmail,
-            "username": normalizedUsername,
+            operation: "signup",
+            action: "normalized_input",
+            message: "Normalized Values.",
+            fullName: fullName,
+            email: normalizedEmail,
+            username: normalizedUsername,
         });
 
         const passwordCheck = isValidPassword(password);
@@ -43,16 +48,32 @@ export async function signup(req, res) {
 
         if (normalizedUsername.length >= 20 || normalizedUsername.length <= 6) {
             logger.error({
+                operation: "signup",
+                action: "validation_failed",
                 error: "username should be either more than 6 digit and less than 20 digit long",
-                "fullName": fullName,
-                "email": normalizedEmail,
-                "username": normalizedUsername,
-                "username_length": normalizedUsername.length
+                fullName: fullName,
+                email: normalizedEmail,
+                username: normalizedUsername,
+                username_length: normalizedUsername.length
             })
 
             return sendResponse(res, 400, "username should be either more than 6 digit and less than 20 digit long")
-
         }
+
+        if (normalizedEmail.length >= 50 || normalizedEmail.length <= 6) {
+            logger.error({
+                operation: "signup",
+                action: "validation_failed",
+                error: "email should be either more than 6 digit and less than 20 digit long",
+                fullName: fullName,
+                email: normalizedEmail,
+                username: normalizedUsername,
+                username_length: normalizedUsername.length
+            })
+
+            return sendResponse(res, 400, "email should be either more than 6 digit and less than 20 digit long")
+        }
+
 
         const existingUser = await User.findOne({
             $or: [
@@ -61,29 +82,43 @@ export async function signup(req, res) {
             ]
         });
 
-        logger.info({ message: "existingUser", existingUser: existingUser, })
+        logger.info({
+            operation: "signup",
+            action: "duplicate_check",
+            message: "Existing user lookup completed",
+            existingUserId: existingUser?._id || null,
+        })
 
         if (existingUser) {
             if (existingUser.email === normalizedEmail) {
-                logger.error({ "error": `${email} already exist in DB` })
+                logger.error({
+                    operation: "signup",
+                    action: "duplicate_email",
+                    error: `${email} already exist in DB`
+                })
                 return sendResponse(res, 400, "Email already registered. Please sign in.");
 
             } else if (existingUser.username === normalizedUsername) {
-                logger.error({ "error": `${username} already exist in DB` })
+                logger.error({
+                    operation: "signup",
+                    action: "duplicate_username",
+                    error: `${username} already exist in DB`
+                })
                 return sendResponse(res, 400, "Username already taken.");
             }
         }
 
+/* This part of the code is handling the validation of an admin password during the signup process. */
         if (adminPassword) {
             if (adminPassword !== ADMIN_PASSWORD) {
                 logger.error({
+                    operation: "signup",
+                    action: "invalid_admin_password",
                     error: "Admin password is incorrect",
-                    "fullName": fullName,
-                    "email": normalizedEmail,
-                    "username": normalizedUsername,
-
+                    fullName: fullName,
+                    email: normalizedEmail,
+                    username: normalizedUsername,
                 });
-
                 return sendResponse(res, 400, "Admin password is incorrect");
             }
         }
@@ -100,6 +135,8 @@ export async function signup(req, res) {
             });
         // }
         logger.info({
+            operation: "signup",
+            action: "created",
             message: "User Created in DB",
             userId: user._id,
             fullName: fullName,
@@ -118,7 +155,9 @@ export async function signup(req, res) {
 
     } catch (err) {
         logger.error({
-            Message: "Error while creating DB User",
+            operation: "signup",
+            action: "failed",
+            message: "Error while creating DB User",
             error: err,
             fullName: fullName,
             email: email,
@@ -135,6 +174,8 @@ export async function signin(req, res) {
 
         if (!loginId || !password) {
             logger.error({
+                operation: "signin",
+                action: "validation_failed",
                 error: "Mandatory field missing for signin",
                 loginId: loginId || null
             });
@@ -146,6 +187,8 @@ export async function signin(req, res) {
         const isEmail = emailRegex.test(normalizedLoginId);
 
         logger.info({
+            operation: "signin",
+            action: "received",
             message: "Signin Request Received",
             loginId: normalizedLoginId
         });
@@ -154,6 +197,8 @@ export async function signin(req, res) {
 
         if (!passwordCheck.isValid) {
             logger.error({
+                operation: "signin",
+                action: "validation_failed",
                 error: "Password should contain - one lowercase,one uppercase,one number,one special character,minimum 8 chars",
                 loginId: normalizedLoginId
             });
@@ -166,6 +211,8 @@ export async function signin(req, res) {
 
             if (!emailCheck.isValid) {
                 logger.error({
+                    operation: "signin",
+                    action: "validation_failed",
                     error: "Invalid Email Address",
                     loginId: loginId
                 });
@@ -176,9 +223,11 @@ export async function signin(req, res) {
         }
 
         const user = await User.findOne(
-            isEmail ? { email: normalizedLoginId } : { username: normalizedLoginId });
+            isEmail ? { email: normalizedLoginId } : { username: normalizedLoginId }).select("+password");;
         if (!user) {
             logger.error({
+                operation: "signin",
+                action: "user_not_found",
                 error: "Sign in failed - User does not exist",
                 loginId: normalizedLoginId
             })
@@ -190,6 +239,8 @@ export async function signin(req, res) {
 
         if (!passwordMatch) {
             logger.error({
+                operation: "signin",
+                action: "invalid_password",
                 error: "Sign in failed - Incorrect Password",
                 loginId: normalizedLoginId
             })
@@ -199,6 +250,8 @@ export async function signin(req, res) {
         return loginTokenGeneration(req, res, user);
     } catch (err) {
         logger.error({
+            operation: "signin",
+            action: "failed",
             message: "Error in Signin function",
             error: err
         })
@@ -209,8 +262,6 @@ export async function signin(req, res) {
 
 }
 
-
-
 export function signout(req, res, user) {
     try {
 
@@ -218,6 +269,8 @@ export function signout(req, res, user) {
 
         logger.info(
             {
+                operation: "signout",
+                action: "completed",
                 message: "Signout Successful",
                 loginId: user.loginId
             })
@@ -227,6 +280,8 @@ export function signout(req, res, user) {
     } catch (error) {
         logger.info(
             {
+                operation: "signout",
+                action: "failed",
                 message: "Error occurred while logging out",
                 error: error
             })

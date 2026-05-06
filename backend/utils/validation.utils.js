@@ -24,6 +24,8 @@ export function isValidPassword(password) {
     } catch (error) {
         logger.info(
             {
+                operation: "validate_password",
+                action: "failed",
                 message: "Error occurred while validating password",
                 error: error
             })
@@ -60,6 +62,8 @@ export function isValidEmail(email) {
     } catch (error) {
         logger.info(
             {
+                operation: "validate_email",
+                action: "failed",
                 message: "Error occurred while validating email",
                 error: error
             })

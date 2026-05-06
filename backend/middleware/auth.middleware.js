@@ -8,6 +8,8 @@ export function protect(req, res, next) {
         if (!token) {
 
             logger.error({
+                operation: "authenticate_request",
+                action: "token_missing",
                 message: "Empty token",
                 error: req.user?.email || null
             })
@@ -20,6 +22,8 @@ export function protect(req, res, next) {
     } catch (error) {
 
         logger.error({
+            operation: "authenticate_request",
+            action: "token_invalid",
             message: "Error in login",
             error: error
         })

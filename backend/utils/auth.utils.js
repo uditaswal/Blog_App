@@ -23,10 +23,12 @@ export function loginTokenGeneration(req, res, user) {
 
         logger.info(
             {
+                operation: "signin",
+                action: "token_generated",
                 message: "Signin token generated successfully",
-                loginId: user.loginId
+                userId: user._id,
+                username: user.username
             })
-
 
         return sendResponse(res, 200, "Sign successful", {
             fullName: user.fullName,
@@ -39,6 +41,8 @@ export function loginTokenGeneration(req, res, user) {
     } catch (error) {
         logger.info(
             {
+                operation: "signin",
+                action: "token_generation_failed",
                 message: "Error occurred while creating token",
                 error: error
             })
