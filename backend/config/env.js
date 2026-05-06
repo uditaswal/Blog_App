@@ -11,7 +11,7 @@ export const mongoDBServerSelectionTimeoutMS = 5000;
 export const mongoDBConnectTimeoutMS = 10000;
 export const mongoDBConnectionRetryCount = 3;
 
-export const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+={}[\]:;"'<>,.?\/\\|`~]).{8,}$/;
+export const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+={}[\]:;"'<>,.?/\\|`~]).{8,}$/;
 export const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
 
 export const frontEndOrigin = isProd ? process.env.prod_frontEndOrigin : process.env.test_frontEndOrigin;

@@ -6,6 +6,7 @@ export function sendResponse(res, statusCode, message, data) {
     const response = {
         success: statusCode >= 200 && statusCode < 400,
         message,
+        correlationID: res.getHeader("x-correlation-id")
 
     };
 

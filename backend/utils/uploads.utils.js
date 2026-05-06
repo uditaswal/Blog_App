@@ -3,6 +3,7 @@ import multer from "multer"
 import path from "path";
 import fs from "fs";
 import { logger } from "./logger.utils.js";
+import { isProd } from "../config/env.js";
 import AppError from "../errors/AppError.js"
 
 export function createUploader(folderName, filePrefix) {
@@ -15,7 +16,7 @@ export function createUploader(folderName, filePrefix) {
                 operation: "upload_file",
                 action: "invalid_file_type",
                 error: "Only image files are allowed!",
-                user: req.user,
+                user: !isProd ? req?.user : null,
                 file_originalname: file.originalname,
 
             })
@@ -37,8 +38,8 @@ export function createUploader(folderName, filePrefix) {
                         operation: "upload_file",
                         action: "directory_created",
                         message: `${dir} created successfully for ${filePrefix}`,
-                        request: req.body,
-                        username: req.user
+                        request: !isProd ? req?.body : null,
+                        username: !isProd ? req?.user : null
 
                     });
                 cb(null, dir);
@@ -62,8 +63,8 @@ export function createUploader(folderName, filePrefix) {
                         operation: "upload_file",
                         action: "filename_created",
                         message: `${fileName} created successfully`,
-                        request: req.body,
-                        user: req.user,
+                        request: !isProd ? req?.body : null,
+                        user: !isProd ? req?.user : null,
                         file_originalname: file.originalname,
                         fileName: fileName
 

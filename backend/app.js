@@ -9,6 +9,7 @@ import { adminRouter } from './routes/admin.routes.js';
 import { logger } from './utils/logger.utils.js';
 import { sendResponse } from './utils/response.utils.js';
 import { sanitizeMiddleware } from './middleware/sanitizeResponse.middleware.js';
+import { correlationMiddleware } from './middleware/correlation.middleware.js';
 import cookieParser from "cookie-parser";
 import { frontEndOrigin } from "./config/env.js"
 import cors from "cors";
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(correlationMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -44,7 +46,9 @@ app.use((req, res, next) => {
     message: "REQUEST",
     url: req.url,
     method: req.method,
+    request_CorrelationID: req?.headers["x-correlation-id"] || null,
     body: JSON.stringify(req.body),
+    user: JSON.stringify(req?.user),
   });
 
   res.on("finish", () => {
@@ -64,6 +68,7 @@ app.use((req, res, next) => {
   });
   next();
 });
+
 app.use(sanitizeMiddleware());
 
 // routes:

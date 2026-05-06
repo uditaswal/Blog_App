@@ -13,7 +13,7 @@ export async function newBlog(req, res) {
                 operation: "create_blog",
                 action: "received",
                 message: "Request received for creating New Blog",
-                body: req.body,
+                body: !isProd ? req?.body : null,
                 file_path: req.file?.path || null
             });
         }
@@ -24,13 +24,13 @@ export async function newBlog(req, res) {
                 action: "required_fields_missing",
                 message: "Mandatory field missing",
                 title: req.body?.title || null,
-                body: req.body?.body || null,
+                body: !isProd ? req?.body : null,
                 coverImagePath: req.body?.coverImagePath || null,
             });
 
             return sendResponse(res, 400, "Mandatory field missing", {
                 title: req.body?.title || null,
-                body: req.body?.body || null,
+                body: !isProd ? req?.body : null,
                 coverImagePath: req.body?.coverImagePath || null
             });
         }

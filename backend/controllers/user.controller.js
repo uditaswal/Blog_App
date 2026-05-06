@@ -7,6 +7,91 @@ import { defaultImgPath } from "../config/env.js"
 import { sendResponse } from "../utils/response.utils.js";
 import { isProd } from "../config/env.js";
 
+export async function getUserOwnAccount(req, res) {
+    try {
+        if (!req.user) {
+            logger.info({
+                operation: "get_user_data",
+                action: "auth_missing",
+                message: "user token is not present in request",
+                username: req?.user.loginId || null,
+                email: req?.user.email || null,
+                user: !isProd ? req?.user : null,
+            })
+
+            return sendResponse(res, 400, "Authentication failed, Sign in Again");
+        }
+
+        const id = req.user.userId;
+
+        if (!id) {
+            logger.info({
+                operation: "get_user_data",
+                action: "user_id_missing",
+                message: "user id is not present in request",
+                username: req?.user.loginId || null,
+                email: req?.user.email || null,
+                id: req?.params || null
+            })
+
+            return sendResponse(res, 400, "user id is not present in request");
+        }
+        logger.info({
+            operation: "get_user_data",
+            action: "received",
+            message: "Request received to fetch user data",
+            username: req?.user.loginId,
+            email: req.user.email,
+            user: !isProd ? req?.user : null,
+            id: id,
+        })
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return sendResponse(res, 400, "Invalid user ID");
+        }
+
+        const users = await User.findById(id).lean();
+        if (!users) {
+            logger.info({
+                operation: "get_user_data",
+                action: "not_found",
+                message: "User not found",
+                username: req.user.loginId,
+                email: req.user.email,
+                id: id,
+            })
+
+            return sendResponse(res, 404, "User not found");
+        }
+
+        const formattedUserData = {
+            ...users,
+            _id: users._id.toString()
+        };
+
+        logger.info({
+            operation: "get_user_data",
+            action: "completed",
+            message: "User  fetched successfully",
+            userId: formattedUserData._id,
+        })
+
+        return sendResponse(res, 200, "User data fetched successfully", { users: formattedUserData });
+    } catch (error) {
+
+        logger.error({
+            operation: "get_user_data",
+            action: "failed",
+            message: "Error while fetching user data",
+            error: error,
+            body: !isProd ? req?.body : null
+        })
+
+
+        return sendResponse(res, 500, "Error while fetching user data")
+    }
+}
+
 export async function deleteUserOwnAccount(req, res) {
     try {
         if (!req.user) {
@@ -99,7 +184,7 @@ export async function deleteUserOwnAccount(req, res) {
             action: "failed",
             message: "Error while deleting user data",
             error: error,
-            body: req.body
+            body: !isProd ? req?.body : null
         })
         return sendResponse(res, 500, "Error while deleting user data")
     }
@@ -127,7 +212,7 @@ export async function updateUserProfileData(req, res) {
             message: "Request received to update user data",
             username: req.user.loginId,
             email: req.user.email,
-            body: req.body,
+            body: !isProd ? req?.body : null,
         });
 
         const allowedFields = ["fullName", "username"];
@@ -143,7 +228,7 @@ export async function updateUserProfileData(req, res) {
                 message: "update is only allowed for username or fullName",
                 username: req.user.loginId || null,
                 email: req.user.email || null,
-                body: req.body
+                body: !isProd ? req?.body : null
             })
             return sendResponse(res, 400, "update is only allowed for username and fullName");
         }
@@ -155,9 +240,9 @@ export async function updateUserProfileData(req, res) {
                 operation: "update_user_data",
                 action: "required_fields_missing",
                 message: "Both fullName and username is missing  ",
-                username: req.user.loginId,
+                username: req.user.userId,
                 email: req.user.email,
-                body: req.user.body,
+                body: !isProd ? req?.body : null,
             })
             return sendResponse(res, 400, "Both fullName and username is missing");
         }
@@ -264,7 +349,7 @@ export async function updateUserProfileData(req, res) {
             action: "failed",
             message: "Error while updating user data",
             error: error,
-            body: req.body
+            body: !isProd ? req?.body : null
         })
         return sendResponse(res, 500, "Error while updating user data")
     }
@@ -277,8 +362,8 @@ export async function updateProfileImg(req, res) {
             operation: "update_profile_image",
             action: "received",
             message: "Request received on updateProfileImg",
-            email: req?.body.email || null,
-            username: req?.body.username || null,
+            email: req?.user.email || null,
+            username: req?.user.username || null,
             userId: req?.user.userId || null,
             file_path: req?.file?.path || null,
             user: !isProd ? req?.user : null
@@ -289,8 +374,7 @@ export async function updateProfileImg(req, res) {
                 operation: "update_profile_image",
                 action: "user_id_missing",
                 error: "userId not found in request",
-                body: req.body,
-                user: req.user,
+                user: !isProd ? req?.user : null,
             })
             return sendResponse(res, 403, "Please sign in again")
         } if (!req.file?.path) {
@@ -298,8 +382,8 @@ export async function updateProfileImg(req, res) {
                 operation: "update_profile_image",
                 action: "file_missing",
                 error: "Picture not found in request",
-                body: req.body,
-                user: req.user,
+                body: !isProd ? req?.body : null,
+                user: !isProd ? req?.user : null,
             })
             return sendResponse(res, 400, "Picture not found, please upload again")
         }
@@ -334,7 +418,7 @@ export async function updateProfileImg(req, res) {
             action: "failed",
             message: "Error while uploading profile image",
             error: error,
-            request: req.body,
+            request: !isProd ? req?.body : null,
             email: req.body.email,
             username: req.body.username,
         })

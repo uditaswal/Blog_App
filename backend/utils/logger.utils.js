@@ -3,6 +3,32 @@ import DailyRotateFile from "winston-daily-rotate-file";
 import { isProd } from '../config/env.js'
 import path from 'path';
 import { fileURLToPath } from "url";
+import { asyncLocalStorage } from "../utils/requestContext.utils.js";
+import os from "os";
+
+const HOSTNAME = os.hostname();
+
+const getHostIP = () => {
+    const interfaces = os.networkInterfaces();
+
+    for (const name of Object.keys(interfaces)) {
+        for (const net of interfaces[name]) {
+            if (
+                net.family === "IPv4" &&
+                !net.internal
+            ) {
+                return net.address;
+
+            }
+        }
+    }
+    return "unknown";
+}
+
+const getCorrelationId = () => {
+    const store = asyncLocalStorage.getStore();
+    return store?.correlationId || "00000000";
+};
 
 function normalizeErrors(obj) {
     if (obj instanceof Error) {
@@ -98,6 +124,7 @@ const sanitizePayload = (payload) => {
 
     if (sanitizedPayload.password) sanitizedPayload.password = "[Redacted]";
     if (sanitizedPayload.token) sanitizedPayload.token = "[Redacted]";
+    if (sanitizedPayload.adminPassword) sanitizedPayload.adminPassword = "[Redacted]";
     if (sanitizedPayload.email) sanitizedPayload.email = isProd ? maskEmail(sanitizedPayload.email) : sanitizedPayload.email;
 
     return sanitizedPayload;
@@ -114,7 +141,7 @@ const orderedJsonFormat = winston.format.printf((info) => {
 const orderedFormat = winston.format((info) => {
     // Pull out all known keys
     const { level, timestamp, operation, action, message, url, method, statusCode,
-        ExecutionTime, body, file, path, line, ...rest } = info;
+        ExecutionTime, body, file, path, line, host, hostIp, CorrelationId, ...rest } = info;
 
     // Delete all enumerable keys from info
     for (const key of Object.keys(info)) {
@@ -127,7 +154,10 @@ const orderedFormat = winston.format((info) => {
 
     // Re-assign in the exact order you want
     defined('timestamp', timestamp);
+    defined('host', host);
+    defined('hostIp', hostIp);
     defined('level', level);
+    defined('CorrelationId', CorrelationId);
     defined('operation', operation);
     defined('action', action);
     defined('message', message);
@@ -179,22 +209,22 @@ export const logger = {
     info(message) {
         const payload =
             typeof message === "object" && message !== null
-                ? { ...normalizeErrors(message), ...getCaller() } // spread object fields to top level
-                : { message, ...getCaller() }; // keep string as message field
+                ? { host: HOSTNAME, hostIp: getHostIP(), CorrelationId: getCorrelationId(), ...normalizeErrors(message), ...getCaller() } // spread object fields to top level
+                : { message, host: HOSTNAME, hostIp: getHostIP(), ...getCaller() }; // keep string as message field
         baseLogger.info(payload);
 
     },
     error(message) {
         const payload = typeof message === "object" && message !== null
-            ? { ...normalizeErrors(message), ...getCaller() }
-            : { message, ...getCaller() };
+            ? { host: HOSTNAME, hostIp: getHostIP(), CorrelationId: getCorrelationId(), ...normalizeErrors(message), ...getCaller() }
+            : { message, host: HOSTNAME, hostIp: getHostIP(), ...getCaller() };
         baseLogger.error(payload);
     },
 
     warn(message) {
         const payload = typeof message === "object" && message !== null
-            ? { ...normalizeErrors(message), ...getCaller() }
-            : { message, ...getCaller() };
+            ? { host: HOSTNAME, hostIp: getHostIP(), CorrelationId: getCorrelationId(), ...normalizeErrors(message), ...getCaller() }
+            : { message, host: HOSTNAME, hostIp: getHostIP(), ...getCaller() };
         baseLogger.warn(payload);
     }
 };

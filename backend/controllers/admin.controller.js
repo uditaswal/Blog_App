@@ -33,7 +33,7 @@ export async function getAllUsersList(req, res) {
                 message: "ADMIN privilege is required to fetch user list",
                 username: req.user.loginId,
                 email: req.user.email,
-                user: req.user
+                user: !isProd ? req?.user : null
             })
 
             return sendResponse(res, 400, "ADMIN privilege is required to fetch user list");
@@ -73,7 +73,7 @@ export async function getAllUsersList(req, res) {
             action: "failed",
             message: "Error while fetching user data",
             error: error,
-            body: req.body
+            body: !isProd ? req?.body : null
         })
 
 
@@ -132,7 +132,7 @@ export async function getUserById(req, res) {
                 message: "ADMIN privilege is required to fetch user list",
                 username: req.user.loginId,
                 email: req.user.email,
-                user: req.user
+                user: !isProd ? req?.user : null
             })
             return sendResponse(res, 400, "ADMIN privilege is required to fetch user list");
         }
@@ -170,7 +170,7 @@ export async function getUserById(req, res) {
             action: "failed",
             message: "Error while fetching user data",
             error: error,
-            body: req.body
+            body: !isProd ? req?.body : null
         })
 
 
@@ -286,7 +286,7 @@ export async function deleteUserData(req, res) {
             action: "failed",
             message: "Error while deleting user data",
             error: error,
-            body: req.body
+            body: !isProd ? req?.body : null
         })
         return sendResponse(res, 500, "Error while deleting user data")
     }
