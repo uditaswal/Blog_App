@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const blogSchema = new Schema({
+
     title: {
         type: String,
         required: true,
@@ -10,7 +11,12 @@ const blogSchema = new Schema({
     }, coverImagePath: {
         type: String,
         required: false
-    }, createdBy: {
+    }
+    , tags: {
+        type: String,
+        required: false
+    }
+    , createdBy: {
         type: Schema.Types.ObjectId,
         ref: "User"
     }

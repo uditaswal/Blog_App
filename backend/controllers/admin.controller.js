@@ -12,7 +12,7 @@ export async function getAllUsersList(req, res) {
                 operation: "get_users_list",
                 action: "auth_missing",
                 message: "user token is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null
             })
 
@@ -22,7 +22,7 @@ export async function getAllUsersList(req, res) {
             operation: "get_users_list",
             action: "received",
             message: "Request received to fetch user data",
-            username: req?.user.loginId,
+            username: req?.user.username,
             email: req.user.email,
         })
 
@@ -31,7 +31,7 @@ export async function getAllUsersList(req, res) {
                 operation: "get_users_list",
                 action: "unauthorized",
                 message: "ADMIN privilege is required to fetch user list",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
                 user: !isProd ? req?.user : null
             })
@@ -46,7 +46,7 @@ export async function getAllUsersList(req, res) {
                 operation: "get_users_list",
                 action: "not_found",
                 message: "No users found",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
             })
             return sendResponse(res, 404, "No users not found");
@@ -89,7 +89,7 @@ export async function getUserById(req, res) {
                 operation: "get_user_data",
                 action: "auth_missing",
                 message: "user token is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 user: !isProd ? req?.user : null,
 
@@ -105,7 +105,7 @@ export async function getUserById(req, res) {
                 operation: "get_user_data",
                 action: "user_id_missing",
                 message: "user id is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 id: req?.params || null
             })
@@ -116,7 +116,7 @@ export async function getUserById(req, res) {
             operation: "get_user_data",
             action: "received",
             message: "Request received to fetch user data",
-            username: req?.user.loginId,
+            username: req?.user.username,
             email: req.user.email,
             user: !isProd ? req?.user : null,
             id: id,
@@ -130,7 +130,7 @@ export async function getUserById(req, res) {
                 operation: "get_user_data",
                 action: "unauthorized",
                 message: "ADMIN privilege is required to fetch user list",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
                 user: !isProd ? req?.user : null
             })
@@ -142,7 +142,7 @@ export async function getUserById(req, res) {
                 operation: "get_user_data",
                 action: "not_found",
                 message: "User not found",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
                 id: id,
             })
@@ -185,7 +185,7 @@ export async function deleteUserData(req, res) {
                 operation: "delete_user_data",
                 action: "auth_missing",
                 message: "user token is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 user: !isProd ? req?.user : null,
             })
@@ -199,7 +199,7 @@ export async function deleteUserData(req, res) {
                 operation: "delete_user_data",
                 action: "user_id_missing",
                 message: "user id is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 id: req?.user.userId || null
             })
@@ -211,7 +211,7 @@ export async function deleteUserData(req, res) {
             operation: "delete_user_data",
             action: "received",
             message: "Request received to delete user data",
-            username: req?.user.loginId,
+            username: req?.user.username,
             email: req.user.email,
             id: id,
         })
@@ -222,7 +222,7 @@ export async function deleteUserData(req, res) {
                 operation: "delete_user_data",
                 action: "unauthorized",
                 message: "Unauthorized to delete this user",
-                username: req?.user.loginId,
+                username: req?.user.username,
                 email: req.user.email,
                 id: id,
             })
@@ -243,7 +243,7 @@ export async function deleteUserData(req, res) {
                 operation: "delete_user_data",
                 action: "not_found",
                 message: "User not found",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
                 id: id,
             })
@@ -256,7 +256,7 @@ export async function deleteUserData(req, res) {
                 operation: "delete_user_data",
                 action: "admin_delete_blocked",
                 message: "Can't delete admin account",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
                 id: id,
             })

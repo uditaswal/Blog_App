@@ -78,7 +78,7 @@ app.use('/blog', blogRouter);
 app.use('/admin', adminRouter);
 app.use('/user', userRouter);
 
-app.get('/test', (req, res) => {
+app.get('/health', (req, res) => {
   return sendResponse(res, 200, "OK")
 });
 

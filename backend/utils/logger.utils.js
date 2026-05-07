@@ -27,7 +27,7 @@ const getHostIP = () => {
 
 const getCorrelationId = () => {
     const store = asyncLocalStorage.getStore();
-    return store?.correlationId || "00000000";
+    return store?.correlationId || "000000000";
 };
 
 function normalizeErrors(obj) {

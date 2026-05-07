@@ -9,6 +9,7 @@ export function loginTokenGeneration(req, res, user) {
             {
                 userId: user._id,
                 username: user.username,
+                email: user.email,
                 fullName: user.fullName,
                 role: user.role,
             }, JWT_SECRET,

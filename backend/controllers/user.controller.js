@@ -14,7 +14,7 @@ export async function getUserOwnAccount(req, res) {
                 operation: "get_user_data",
                 action: "auth_missing",
                 message: "user token is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 user: !isProd ? req?.user : null,
             })
@@ -29,7 +29,7 @@ export async function getUserOwnAccount(req, res) {
                 operation: "get_user_data",
                 action: "user_id_missing",
                 message: "user id is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 id: req?.params || null
             })
@@ -40,7 +40,7 @@ export async function getUserOwnAccount(req, res) {
             operation: "get_user_data",
             action: "received",
             message: "Request received to fetch user data",
-            username: req?.user.loginId,
+            username: req?.user.username,
             email: req.user.email,
             user: !isProd ? req?.user : null,
             id: id,
@@ -56,7 +56,7 @@ export async function getUserOwnAccount(req, res) {
                 operation: "get_user_data",
                 action: "not_found",
                 message: "User not found",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
                 id: id,
             })
@@ -99,7 +99,7 @@ export async function deleteUserOwnAccount(req, res) {
                 operation: "delete_user_data",
                 action: "auth_missing",
                 message: "user token is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 user: !isProd ? req?.user : null,
             })
@@ -113,7 +113,7 @@ export async function deleteUserOwnAccount(req, res) {
                 operation: "delete_user_data",
                 action: "user_id_missing",
                 message: "user id is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 id: req?.params || null
             })
@@ -125,7 +125,7 @@ export async function deleteUserOwnAccount(req, res) {
             operation: "delete_user_data",
             action: "received",
             message: "Request received to delete user own account",
-            username: req?.user.loginId,
+            username: req?.user.username,
             email: req.user.email,
             id: id,
         });
@@ -136,7 +136,7 @@ export async function deleteUserOwnAccount(req, res) {
                 operation: "delete_user_data",
                 action: "unauthorized",
                 message: "User not authorized to delete this account",
-                username: req?.user.loginId,
+                username: req?.user.username,
                 email: req.user.email,
                 id: id,
             })
@@ -154,7 +154,7 @@ export async function deleteUserOwnAccount(req, res) {
                 operation: "delete_user_data",
                 action: "not_found",
                 message: "User not found",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
                 id: id,
             })
@@ -199,7 +199,7 @@ export async function updateUserProfileData(req, res) {
                 operation: "update_user_data",
                 action: "auth_missing",
                 message: "user token is not present in request",
-                username: req?.user.loginId || null,
+                username: req?.user.username || null,
                 email: req?.user.email || null,
                 user: !isProd ? req?.user : null
             })
@@ -210,7 +210,7 @@ export async function updateUserProfileData(req, res) {
             operation: "update_user_data",
             action: "received",
             message: "Request received to update user data",
-            username: req.user.loginId,
+            username: req.user.username,
             email: req.user.email,
             body: !isProd ? req?.body : null,
         });
@@ -226,7 +226,7 @@ export async function updateUserProfileData(req, res) {
                 operation: "update_user_data",
                 action: "invalid_fields",
                 message: "update is only allowed for username or fullName",
-                username: req.user.loginId || null,
+                username: req.user.username || null,
                 email: req.user.email || null,
                 body: !isProd ? req?.body : null
             })
@@ -235,7 +235,7 @@ export async function updateUserProfileData(req, res) {
 
         const { fullName, username } = req.body;
 
-        if (!fullName || !username) {
+        if (!fullName && !username) {
             logger.info({
                 operation: "update_user_data",
                 action: "required_fields_missing",
@@ -247,7 +247,7 @@ export async function updateUserProfileData(req, res) {
             return sendResponse(res, 400, "Both fullName and username is missing");
         }
 
-        const normalizedUsername = username.trim().toLowerCase();
+        const normalizedUsername = username ? username.trim().toLowerCase() : null;
 
         logger.info({
             operation: "update_user_data",
@@ -257,41 +257,68 @@ export async function updateUserProfileData(req, res) {
             username: normalizedUsername,
         });
 
+        if (normalizedUsername) {
 
-        if (normalizedUsername.length >= 20 || normalizedUsername.length <= 6) {
-            logger.error({
-                operation: "update_user_data",
-                action: "validation_failed",
-                error: "username should be either more than 6 digit and less than 20 digit long",
-                fullName: fullName,
-                username: normalizedUsername,
-                username_length: normalizedUsername.length
-            })
 
-            return sendResponse(res, 400, "username should be either more than 6 digit and less than 20 digit long")
-        }
 
-        const existingUser = await User.findOne({
-            username: normalizedUsername
-        });
-
-        logger.info({
-            operation: "update_user_data",
-            action: "duplicate_check",
-            message: "Existing user lookup completed",
-            existingUserId: existingUser?._id || null,
-        })
-
-        if (existingUser) {
-
-            if (existingUser.username === normalizedUsername) {
+            if (normalizedUsername.length >= 20 || normalizedUsername.length <= 6) {
                 logger.error({
                     operation: "update_user_data",
-                    action: "duplicate_username",
-                    error: `${username} already exist in DB`
+                    action: "validation_failed",
+                    error: "username should be either more than 6 digit and less than 20 digit long",
+                    fullName: fullName,
+                    username: normalizedUsername,
+                    username_length: normalizedUsername.length
                 })
-                return sendResponse(res, 400, "Username already taken.");
+
+                return sendResponse(res, 400, "username should be either more than 6 digit and less than 20 digit long")
             }
+
+        }
+
+        if (fullName) {
+
+
+            if (fullName.length >= 80 || fullName.length <= 6) {
+                logger.error({
+                    operation: "update_user_data",
+                    action: "validation_failed",
+                    error: "Full Name should be either more than 6 digit and less than 80 digit long",
+                    fullName: fullName,
+                    username: normalizedUsername,
+                    username_length: normalizedUsername.length
+                })
+
+                return sendResponse(res, 400, "Full Name should be either more than 6 digit and less than 80 digit long")
+            }
+        }
+
+        if (normalizedUsername) {
+            const existingUser = await User.findOne({
+                username: normalizedUsername,
+                _id: { $ne: req.user.userId }
+
+            });
+
+            logger.info({
+                operation: "update_user_data",
+                action: "duplicate_check",
+                message: "Existing user lookup completed",
+                existingUserId: existingUser?._id || null,
+            })
+
+            if (existingUser) {
+
+                if (existingUser.username === normalizedUsername) {
+                    logger.error({
+                        operation: "update_user_data",
+                        action: "duplicate_username",
+                        error: `${username} already exist in DB`
+                    })
+                    return sendResponse(res, 400, "Username already taken.");
+                }
+            }
+
         }
 
 
@@ -302,7 +329,7 @@ export async function updateUserProfileData(req, res) {
                 operation: "update_user_data",
                 action: "not_found",
                 message: "User not found",
-                username: req.user.loginId,
+                username: req.user.username,
                 email: req.user.email,
             })
 
@@ -323,7 +350,7 @@ export async function updateUserProfileData(req, res) {
 
         const updateData = {};
         if (req.body.fullName) updateData.fullName = req.body.fullName;
-        if (req.body.username) updateData.username = req.body.username;
+        if (req.body.username) updateData.username = normalizedUsername;
 
         const updatedUser = await User.findByIdAndUpdate(
             req.user.userId,

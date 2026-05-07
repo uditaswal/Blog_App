@@ -108,7 +108,7 @@ export async function signup(req, res) {
             }
         }
 
-/* This part of the code is handling the validation of an admin password during the signup process. */
+        /* This part of the code is handling the validation of an admin password during the signup process. */
         if (adminPassword) {
             if (adminPassword !== ADMIN_PASSWORD) {
                 logger.error({
@@ -272,7 +272,7 @@ export function signout(req, res, user) {
                 operation: "signout",
                 action: "completed",
                 message: "Signout Successful",
-                loginId: user.loginId
+                loginId: user.username
             })
 
 

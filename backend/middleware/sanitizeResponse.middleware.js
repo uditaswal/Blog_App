@@ -15,7 +15,7 @@ export const sanitizeMiddleware = () => {
                     action: "failed",
                     message: "Error while sanitizing response",
                     error: err,
-                    username: req?.user.loginId || null,
+                    username: req?.user.username || null,
                     email: req?.user.email || null,
 
                 })
